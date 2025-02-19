@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'customer_list_screen.dart'; // Import the new screen
+import './widgets/smartserve_header.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   Future<List<dynamic>> fetchCustomers() async {
     final response = await http.get(
-      Uri.parse('http://192.168.48.11:4000/customers'),
+      Uri.parse('http://192.168.48.11:8080/customers'),
     ); // Replace with your API URL
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(
-        response.body,
-      ); // Ensure decoding as Map
+      final Map<String, dynamic> data = jsonDecode(response.body);
       if (data['success'] == true && data.containsKey('customers')) {
         return data['customers']; // Extract 'customers' array
       } else {
@@ -28,15 +27,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Home Screen',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.deepPurple,
-        elevation: 5,
-      ),
+      appBar: SmartServeHeader(), // ✅ Using the reusable header
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -80,7 +71,7 @@ class HomeScreen extends StatelessWidget {
     IconData icon,
     Color color,
     Future<List<dynamic>> Function()?
-    fetchFunction, // Accept a function reference
+    fetchFunction, // Accept function reference
   ) {
     return SizedBox(
       width: double.infinity,
