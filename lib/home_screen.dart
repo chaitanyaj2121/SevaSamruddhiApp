@@ -12,7 +12,6 @@ class HomeScreen extends StatelessWidget {
     final response = await http.get(
       Uri.parse('http://192.168.48.11:8080/customers'),
     ); // Replace with your API URL
-
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (data['success'] == true && data.containsKey('customers')) {
