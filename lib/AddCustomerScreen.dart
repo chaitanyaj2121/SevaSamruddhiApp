@@ -17,6 +17,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   final TextEditingController _messIdController = TextEditingController();
   DateTime? _selectedDate;
   File? _imageFile;
+  bool isLoading = false; // ✅ Loading state
 
   final ImagePicker _picker = ImagePicker();
 
@@ -45,6 +46,10 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        isLoading = true; // ✅ Show loading indicator
+      });
+
       try {
         var request = http.MultipartRequest(
           'POST',
@@ -88,6 +93,10 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      } finally {
+        setState(() {
+          isLoading = false; // ✅ Hide loading indicator after response
+        });
       }
     }
   }
@@ -255,7 +264,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Submit Button
+                  // Submit Button with Loading State
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -263,11 +272,22 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                         backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
-                      onPressed: _submitForm,
-                      child: const Text(
-                        'Add Customer',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
+                      onPressed:
+                          isLoading
+                              ? null
+                              : _submitForm, // ✅ Disabled while loading
+                      child:
+                          isLoading
+                              ? CircularProgressIndicator(
+                                color: Colors.white,
+                              ) // ✅ Show loader
+                              : const Text(
+                                'Add Customer',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
                     ),
                   ),
                 ],
