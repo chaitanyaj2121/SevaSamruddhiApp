@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'customer_list_screen.dart'; // Import the new screen
+import 'addCustomerScreen.dart'; // Import the AddCustomerScreen
 import './widgets/smartserve_header.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -27,7 +28,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SmartServeHeader(), // ✅ Using the reusable header
+      appBar: SmartServeHeader(),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -39,7 +40,7 @@ class HomeScreen extends StatelessWidget {
                 'Customers',
                 Icons.people,
                 Colors.blue,
-                fetchCustomers, // Pass function reference
+                fetchCustomers,
               ),
               const SizedBox(height: 20),
               _buildButton(
@@ -57,6 +58,15 @@ class HomeScreen extends StatelessWidget {
                 Colors.orange,
                 null,
               ),
+              const SizedBox(height: 20),
+              _buildButton(
+                context,
+                'Add Customer', // ✅ New button
+                Icons.person_add,
+                Colors.purple,
+                null,
+                isAddCustomer: true, // Pass true for Add Customer button
+              ),
             ],
           ),
         ),
@@ -70,9 +80,9 @@ class HomeScreen extends StatelessWidget {
     String text,
     IconData icon,
     Color color,
-    Future<List<dynamic>> Function()?
-    fetchFunction, // Accept function reference
-  ) {
+    Future<List<dynamic>> Function()? fetchFunction, {
+    bool isAddCustomer = false,
+  }) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -86,10 +96,15 @@ class HomeScreen extends StatelessWidget {
           shadowColor: Colors.black45,
         ),
         onPressed: () async {
-          if (fetchFunction != null) {
+          if (isAddCustomer) {
+            // ✅ Navigate to AddCustomerScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddCustomerScreen()),
+            );
+          } else if (fetchFunction != null) {
             try {
-              List<dynamic> customers =
-                  await fetchFunction(); // Invoke function
+              List<dynamic> customers = await fetchFunction();
               Navigator.push(
                 context,
                 MaterialPageRoute(

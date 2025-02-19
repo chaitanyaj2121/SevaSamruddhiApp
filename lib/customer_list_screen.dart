@@ -24,6 +24,7 @@ class CustomerListScreen extends StatelessWidget {
               ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+
                   children: [
                     Icon(Icons.people_outline, size: 80, color: Colors.grey),
                     const SizedBox(height: 10),
