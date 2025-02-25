@@ -85,114 +85,145 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       isScrollControlled: true, // Adjusts for the keyboard
       builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Manage Customer: ${customer['name']}",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Name (read-only)
-                const Text("Name"),
-                TextField(
-                  controller: nameController,
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Mobile (read-only)
-                const Text("Mobile"),
-                TextField(
-                  controller: mobileController,
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Start Date (read-only)
-                const Text("Start Date"),
-                TextField(
-                  controller: startDateController,
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Fees Paid (editable)
-                const Text("Fees Paid"),
-                TextField(
-                  controller: feesPaidController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Sutty (editable, default is 0)
-                const Text("Sutty"),
-                TextField(
-                  controller: suttyController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    child: const Text("Update"),
-                    onPressed: () async {
-                      // Prepare the updated data payload
-                      final updatedData = {
-                        'feesPaid': feesPaidController.text,
-                        'suttya': suttyController.text,
-                      };
+        // Use StatefulBuilder to manage local state for the loading indicator.
+        bool isUpdating = false;
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Manage Customer: ${customer['name']}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Name (read-only)
+                    const Text("Name"),
+                    TextField(
+                      controller: nameController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Mobile (read-only)
+                    const Text("Mobile"),
+                    TextField(
+                      controller: mobileController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Start Date (read-only)
+                    const Text("Start Date"),
+                    TextField(
+                      controller: startDateController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Fees Paid (editable)
+                    const Text("Fees Paid"),
+                    TextField(
+                      controller: feesPaidController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Sutty (editable, default is 0)
+                    const Text("Sutty"),
+                    TextField(
+                      controller: suttyController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: ElevatedButton(
+                        child:
+                            isUpdating
+                                ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                                : const Text("Update"),
+                        onPressed:
+                            isUpdating
+                                ? null
+                                : () async {
+                                  setModalState(() {
+                                    isUpdating = true;
+                                  });
+                                  // Prepare the updated data payload
+                                  final updatedData = {
+                                    'feesPaid': feesPaidController.text,
+                                    'suttya': suttyController.text,
+                                  };
 
-                      // Replace 'customer['id']' with the appropriate ID field
-                      final url = Uri.parse(
-                        "http://192.168.166.11:8080/customers/update/${customer['id']}",
-                      );
+                                  // Replace 'customer['id']' with the appropriate ID field
+                                  final url = Uri.parse(
+                                    "http://192.168.166.11:8080/customers/update/${customer['id']}",
+                                  );
 
-                      try {
-                        final response = await http.post(
-                          url,
-                          headers: {"Content-Type": "application/json"},
-                          body: jsonEncode(updatedData),
-                        );
+                                  try {
+                                    final response = await http.post(
+                                      url,
+                                      headers: {
+                                        "Content-Type": "application/json",
+                                      },
+                                      body: jsonEncode(updatedData),
+                                    );
 
-                        if (response.statusCode == 200) {
-                          // Optionally refresh the customer list after a successful update
-                          _fetchCustomerData();
-                          Navigator.pop(context); // Dismiss the bottom sheet
-                        } else {
-                          print("Failed to update customer");
-                        }
-                      } catch (e) {
-                        print("Error updating customer: $e");
-                      }
-                    },
-                  ),
+                                    if (response.statusCode == 200) {
+                                      // Optionally refresh the customer list after a successful update
+                                      _fetchCustomerData();
+                                      Navigator.pop(
+                                        context,
+                                      ); // Dismiss the bottom sheet
+                                    } else {
+                                      print("Failed to update customer");
+                                    }
+                                  } catch (e) {
+                                    print("Error updating customer: $e");
+                                  }
+                                  setModalState(() {
+                                    isUpdating = false;
+                                  });
+                                },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
