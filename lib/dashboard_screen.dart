@@ -48,15 +48,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _onMenuItemSelected(String value, dynamic customer) {
     switch (value) {
       case 'manage':
-        // Open the bottom sheet to manage/update the customer
         _showUpdateCustomerBottomSheet(customer);
         break;
       case 'renew':
-        print("Renew customer: ${customer['name']}");
+        _renewCustomer(customer);
         break;
       case 'delete':
         print("Delete customer: ${customer['name']}");
         break;
+    }
+  }
+
+  Future<void> _renewCustomer(dynamic customer) async {
+    // Show a loading indicator (using a dialog)
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+
+    final url = Uri.parse("http://192.168.166.11:8080/renew-customer");
+    final bodyData = {
+      'customerId':
+          customer['id'], // Make sure 'id' is the correct key for customer ID.
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(bodyData),
+      );
+
+      Navigator.pop(context); // Dismiss the loading indicator
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Renew Success!")));
+        _fetchCustomerData(); // Refresh the list
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Failed to renew customer")));
+      }
+    } catch (error) {
+      Navigator.pop(context); // Dismiss the loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error renewing customer: $error")),
+      );
     }
   }
 
