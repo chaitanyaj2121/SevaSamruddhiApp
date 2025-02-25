@@ -54,8 +54,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _renewCustomer(customer);
         break;
       case 'delete':
-        print("Delete customer: ${customer['name']}");
+        _deleteCustomer(customer);
         break;
+    }
+  }
+
+  Future<void> _deleteCustomer(dynamic customer) async {
+    // Show a loading indicator while the delete request is processing
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+
+    final url = Uri.parse("http://192.168.166.11:8080/delete-customer");
+    final bodyData = {
+      'customerId': customer['id'],
+    }; // Ensure 'id' matches your customer ID field
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(bodyData),
+      );
+
+      Navigator.pop(context); // Dismiss the loading indicator
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Customer deleted successfully!")),
+        );
+        _fetchCustomerData(); // Refresh the customer list
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Failed to delete customer")));
+      }
+    } catch (error) {
+      Navigator.pop(context); // Dismiss the loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error deleting customer: $error")),
+      );
     }
   }
 
