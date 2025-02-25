@@ -156,41 +156,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               const SizedBox(height: 8),
-                                              Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.phone,
-                                                    size: 16,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    customer['mobile'] ?? 'N/A',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                ],
+                                              Text(
+                                                "Fees Paid: ₹${customer['feesPaid'] ?? 0}",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.green,
+                                                ),
                                               ),
                                               const SizedBox(height: 8),
-                                              Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.attach_money,
-                                                    size: 16,
-                                                    color: Colors.green,
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    "Fees Remain: ₹${2300 - (customer['feesPaid'] ?? 0)}",
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
+                                              Text(
+                                                "Fees Remaining: ₹${2300 - (customer['feesPaid'] ?? 0)}",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                               ),
                                               const SizedBox(height: 8),
                                               Text(
@@ -203,52 +183,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    // Buttons displayed vertically
-                                    Column(
-                                      children: [
-                                        ElevatedButton.icon(
-                                          onPressed:
-                                              () => _onMenuItemSelected(
-                                                'manage',
+                                        PopupMenuButton<String>(
+                                          onSelected:
+                                              (value) => _onMenuItemSelected(
+                                                value,
                                                 customer,
                                               ),
-                                          icon: Icon(Icons.settings),
-                                          label: Text('Manage'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.blue,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        ElevatedButton.icon(
-                                          onPressed:
-                                              () => _onMenuItemSelected(
-                                                'renew',
-                                                customer,
-                                              ),
-                                          icon: Icon(Icons.refresh),
-                                          label: Text('Renew'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.orange,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        ElevatedButton.icon(
-                                          onPressed:
-                                              () => _onMenuItemSelected(
-                                                'delete',
-                                                customer,
-                                              ),
-                                          icon: Icon(Icons.delete),
-                                          label: Text('Delete'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.red,
-                                            foregroundColor: Colors.white,
-                                          ),
+                                          itemBuilder:
+                                              (context) => [
+                                                PopupMenuItem(
+                                                  value: 'manage',
+                                                  child: Text('Manage'),
+                                                ),
+                                                PopupMenuItem(
+                                                  value: 'renew',
+                                                  child: Text('Renew'),
+                                                ),
+                                                PopupMenuItem(
+                                                  value: 'delete',
+                                                  child: Text('Delete'),
+                                                ),
+                                              ],
                                         ),
                                       ],
                                     ),
