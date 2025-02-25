@@ -5,6 +5,7 @@ import 'customer_list_screen.dart';
 import 'AddCustomerScreen.dart';
 import 'dashboard_screen.dart'; // ✅ Import DashboardScreen
 import './widgets/smartserve_header.dart';
+import 'notifications_screen.dart'; // ✅ Import NotificationsScreen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -108,6 +109,14 @@ class HomeScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => DashboardScreen()),
+            );
+          } else if (text == 'Notifications') {
+            // ✅ Navigate to NotificationsScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationsScreen(),
+              ),
             );
           } else if (fetchFunction != null) {
             try {
