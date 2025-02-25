@@ -70,17 +70,17 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 : DateTime.now().toIso8601String();
 
         if (_imageFile != null && await _imageFile!.exists()) {
-          print('Adding file to request: ${_imageFile!.path}');
+          // print('Adding file to request: ${_imageFile!.path}');
           request.files.add(
             await http.MultipartFile.fromPath('file', _imageFile!.path),
           );
         } else {
-          print('No file selected');
+          // print('No file selected');
         }
 
         var response = await request.send();
         var responseBody = await response.stream.bytesToString();
-        print('Response Body: $responseBody');
+        // print('Response Body: $responseBody');
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           ScaffoldMessenger.of(context).showSnackBar(
