@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'customer_list_screen.dart'; // Import the new screen
-import 'addCustomerScreen.dart'; // Import the AddCustomerScreen
+import 'customer_list_screen.dart';
+import 'AddCustomerScreen.dart';
+import 'dashboard_screen.dart'; // ✅ Import DashboardScreen
 import './widgets/smartserve_header.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -10,12 +11,12 @@ class HomeScreen extends StatelessWidget {
 
   Future<List<dynamic>> fetchCustomers() async {
     final response = await http.get(
-      Uri.parse('http://192.168.48.11:8080/customers'),
-    ); // Replace with your API URL
+      Uri.parse('http://192.168.166.11:8080/customers'),
+    );
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (data['success'] == true && data.containsKey('customers')) {
-        return data['customers']; // Extract 'customers' array
+        return data['customers'];
       } else {
         throw Exception('Invalid response format');
       }
@@ -44,10 +45,11 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 20),
               _buildButton(
                 context,
-                'Dashboard',
+                'Dashboard', // ✅ Navigates to Dashboard
                 Icons.dashboard,
                 Colors.green,
                 null,
+                navigateToDashboard: true,
               ),
               const SizedBox(height: 20),
               _buildButton(
@@ -60,11 +62,11 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 20),
               _buildButton(
                 context,
-                'Add Customer', // ✅ New button
+                'Add Customer',
                 Icons.person_add,
                 Colors.purple,
                 null,
-                isAddCustomer: true, // Pass true for Add Customer button
+                isAddCustomer: true,
               ),
             ],
           ),
@@ -81,6 +83,7 @@ class HomeScreen extends StatelessWidget {
     Color color,
     Future<List<dynamic>> Function()? fetchFunction, {
     bool isAddCustomer = false,
+    bool navigateToDashboard = false, // ✅ New flag for dashboard
   }) {
     return SizedBox(
       width: double.infinity,
@@ -96,10 +99,15 @@ class HomeScreen extends StatelessWidget {
         ),
         onPressed: () async {
           if (isAddCustomer) {
-            // ✅ Navigate to AddCustomerScreen
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => AddCustomerScreen()),
+            );
+          } else if (navigateToDashboard) {
+            // ✅ Navigate to DashboardScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DashboardScreen()),
             );
           } else if (fetchFunction != null) {
             try {

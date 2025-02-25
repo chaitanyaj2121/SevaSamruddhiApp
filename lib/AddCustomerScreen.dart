@@ -53,13 +53,17 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
       try {
         var request = http.MultipartRequest(
           'POST',
-          Uri.parse('http://192.168.48.11:8080/addCustomer'),
+          Uri.parse('http://192.168.166.11:8080/addCustomer'),
         );
 
         request.fields['name'] = _nameController.text;
         request.fields['mobile'] = _mobileController.text;
-        request.fields['feesPaid'] = _feesController.text;
-        request.fields['messId'] = _messIdController.text;
+        request.fields['feesPaid'] =
+            double.tryParse(_feesController.text)?.toString() ?? '0.0';
+
+        request.fields['messId'] =
+            int.tryParse(_messIdController.text)?.toString() ?? '0';
+
         request.fields['start_date'] =
             _selectedDate != null
                 ? _selectedDate!.toIso8601String()
@@ -169,7 +173,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Mess ID Field
+                  /// Mess ID Field
                   TextFormField(
                     controller: _messIdController,
                     decoration: InputDecoration(
@@ -177,9 +181,19 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                       prefixIcon: Icon(Icons.business),
                       border: OutlineInputBorder(),
                     ),
-                    validator:
-                        (value) => value!.isEmpty ? 'Enter mess ID' : null,
+                    keyboardType: TextInputType.number, // ✅ Allow only numbers
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Enter mess ID';
+                      }
+                      if (int.tryParse(value) == null) {
+                        // ✅ Ensure it's a valid integer
+                        return 'Mess ID must be a number';
+                      }
+                      return null;
+                    },
                   ),
+
                   const SizedBox(height: 10),
 
                   // Date Picker
@@ -219,10 +233,19 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                       prefixIcon: Icon(Icons.money),
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.number,
-                    validator:
-                        (value) => value!.isEmpty ? 'Enter amount' : null,
+                    keyboardType: TextInputType.number, // ✅ Allow only numbers
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Enter amount';
+                      }
+                      if (int.tryParse(value) == null) {
+                        // ✅ Ensure it's a valid integer
+                        return 'Enter a valid number';
+                      }
+                      return null;
+                    },
                   ),
+
                   const SizedBox(height: 10),
 
                   // Image Upload
@@ -269,7 +292,12 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          162,
+                          207,
+                          243,
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
                       onPressed:
