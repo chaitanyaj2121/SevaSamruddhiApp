@@ -30,129 +30,214 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SmartServeHeader(),
-      body: Center(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.grey[200]!, Colors.grey[100]!],
+          ),
+        ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildButton(
-                context,
-                'Customers',
-                Icons.people,
-                Colors.blue,
-                fetchCustomers,
-              ),
-              const SizedBox(height: 20),
-              _buildButton(
-                context,
-                'Dashboard', // ✅ Navigates to Dashboard
-                Icons.dashboard,
-                Colors.green,
-                null,
-                navigateToDashboard: true,
-              ),
-              const SizedBox(height: 20),
-              _buildButton(
-                context,
-                'Notifications',
-                Icons.notifications,
-                Colors.orange,
-                null,
-              ),
-              const SizedBox(height: 20),
-              _buildButton(
-                context,
-                'Add Customer',
-                Icons.person_add,
-                Colors.purple,
-                null,
-                isAddCustomer: true,
+              const SizedBox(height: 30),
+              _buildHeader(),
+              const SizedBox(height: 40),
+              Expanded(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: 4,
+                  separatorBuilder:
+                      (context, index) => const SizedBox(height: 20),
+                  itemBuilder: (context, index) {
+                    return _buildFeatureCard(context, index, fetchCustomers);
+                  },
+                ),
               ),
             ],
           ),
         ),
       ),
-      backgroundColor: Colors.grey[200],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddCustomerScreen()),
+          );
+        },
+        backgroundColor: Colors.purple,
+        elevation: 8,
+        child: const Icon(Icons.person_add, color: Colors.white, size: 28),
+      ),
     );
   }
 
-  Widget _buildButton(
-    BuildContext context,
-    String text,
-    IconData icon,
-    Color color,
-    Future<List<dynamic>> Function()? fetchFunction, {
-    bool isAddCustomer = false,
-    bool navigateToDashboard = false, // ✅ New flag for dashboard
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          backgroundColor: color,
-          elevation: 5,
-          shadowColor: Colors.black45,
-        ),
-        onPressed: () async {
-          if (isAddCustomer) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AddCustomerScreen()),
-            );
-          } else if (navigateToDashboard) {
-            // ✅ Navigate to DashboardScreen
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DashboardScreen()),
-            );
-          } else if (text == 'Notifications') {
-            // ✅ Navigate to NotificationsScreen
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const NotificationsScreen(),
-              ),
-            );
-          } else if (fetchFunction != null) {
-            try {
-              List<dynamic> customers = await fetchFunction();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => CustomerListScreen(customers: customers),
-                ),
-              );
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error fetching customers: $e')),
-              );
-            }
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$text Button Pressed'),
-                backgroundColor: color,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        },
-        icon: Icon(icon, color: Colors.white),
-        label: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 18,
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        Text(
+          'SmartServe Manager',
+          style: TextStyle(
+            fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Colors.grey[800],
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Manage your restaurant operations',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey[600],
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureCard(
+    BuildContext context,
+    int index,
+    Future<List<dynamic>> Function() fetchCustomers,
+  ) {
+    final features = [
+      {
+        'title': 'Customers',
+        'icon': Icons.people_alt_rounded,
+        'color': Colors.blue,
+        'action': fetchCustomers,
+      },
+      {
+        'title': 'Dashboard',
+        'icon': Icons.analytics_rounded,
+        'color': Colors.green,
+        'action': null,
+      },
+      {
+        'title': 'Notifications',
+        'icon': Icons.notifications_active_rounded,
+        'color': Colors.orange,
+        'action': null,
+      },
+      {
+        'title': 'Reports',
+        'icon': Icons.assignment_rounded,
+        'color': Colors.purple,
+        'action': null,
+      },
+    ];
+    final feature = features[index];
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _handleFeatureTap(context, feature),
+        child: Container(
+          height: 120,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                (feature['color'] as Color).withOpacity(0.9),
+                (feature['color'] as Color).withOpacity(0.7),
+              ],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -30,
+                top: -30,
+                child: Icon(
+                  feature['icon'] as IconData,
+                  size: 120,
+                  color: Colors.white.withOpacity(0.15),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      feature['icon'] as IconData,
+                      size: 32,
+                      color: Colors.white,
+                    ),
+                    const Spacer(),
+                    Text(
+                      feature['title'] as String,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 2,
+                            color: Colors.black26,
+                            offset: Offset(1, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  void _handleFeatureTap(BuildContext context, Map<String, dynamic> feature) {
+    if (feature['title'] == 'Dashboard') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DashboardScreen()),
+      );
+    } else if (feature['title'] == 'Notifications') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+      );
+    } else if (feature['action'] != null) {
+      _handleFetchAction(
+        context,
+        feature['action'] as Future<List<dynamic>> Function(),
+      );
+    }
+  }
+
+  void _handleFetchAction(
+    BuildContext context,
+    Future<List<dynamic>> Function() fetchFunction,
+  ) async {
+    try {
+      final customers = await fetchFunction();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CustomerListScreen(customers: customers),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import intl for date formatting
+import 'package:intl/intl.dart';
 
 class CustomerListScreen extends StatelessWidget {
   final List<dynamic> customers;
@@ -7,13 +7,12 @@ class CustomerListScreen extends StatelessWidget {
   const CustomerListScreen({Key? key, required this.customers})
     : super(key: key);
 
-  // Function to format Timestamp to readable date
   String formatStartDate(dynamic timestamp) {
     if (timestamp != null && timestamp['_seconds'] != null) {
       DateTime date = DateTime.fromMillisecondsSinceEpoch(
         timestamp['_seconds'] * 1000,
       );
-      return DateFormat('dd MMM yyyy').format(date); // Example: 20 Feb 2025
+      return DateFormat('dd MMM yyyy').format(date);
     }
     return 'N/A';
   }
@@ -26,20 +25,27 @@ class CustomerListScreen extends StatelessWidget {
           'Customers List',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
         ),
-        backgroundColor: Colors.deepPurple,
-        elevation: 5,
-        shadowColor: Colors.black54,
         centerTitle: true,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.deepPurple, Colors.purpleAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 6,
       ),
       body:
           customers.isEmpty
               ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: const [
                     Icon(Icons.people_outline, size: 80, color: Colors.grey),
-                    const SizedBox(height: 10),
-                    const Text(
+                    SizedBox(height: 10),
+                    Text(
                       "No customers found",
                       style: TextStyle(fontSize: 18, color: Colors.grey),
                     ),
@@ -55,21 +61,18 @@ class CustomerListScreen extends StatelessWidget {
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    elevation: 4,
+                    elevation: 5,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(15),
-                      onTap: () {
-                        // Add navigation or action when a customer is tapped
-                      },
+                      onTap: () {},
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Customer Avatar
                             CircleAvatar(
                               backgroundImage:
                                   customer['customerImage']?['url'] != null
@@ -77,24 +80,25 @@ class CustomerListScreen extends StatelessWidget {
                                         customer['customerImage']['url'],
                                       )
                                       : null,
-                              backgroundColor: Colors.grey[300],
+                              backgroundColor:
+                                  customer['customerImage']?['url'] == null
+                                      ? Colors.purple[100]
+                                      : Colors.transparent,
                               radius: 30,
                               child:
                                   customer['customerImage']?['url'] == null
                                       ? const Icon(
                                         Icons.person,
-                                        color: Colors.white,
+                                        color: Colors.deepPurple,
                                         size: 30,
                                       )
                                       : null,
                             ),
                             const SizedBox(width: 16),
-                            // Customer Details
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Customer Name
                                   Text(
                                     customer['name'] ?? 'Unknown',
                                     style: const TextStyle(
@@ -103,30 +107,28 @@ class CustomerListScreen extends StatelessWidget {
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 8),
-                                  // Mobile Number
+                                  const SizedBox(height: 6),
                                   Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.phone,
                                         size: 16,
-                                        color: Colors.grey[700],
+                                        color: Colors.grey,
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
                                         customer['mobile'] ?? 'N/A',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 14,
-                                          color: Colors.grey[700],
+                                          color: Colors.grey,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  // Fees Paid
+                                  const SizedBox(height: 6),
                                   Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.attach_money,
                                         size: 16,
                                         color: Colors.green,
@@ -134,18 +136,17 @@ class CustomerListScreen extends StatelessWidget {
                                       const SizedBox(width: 8),
                                       Text(
                                         "Fees Paid: ₹${customer['feesPaid'] ?? 0}",
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  // Start Date
+                                  const SizedBox(height: 6),
                                   Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.calendar_today,
                                         size: 16,
                                         color: Colors.blue,
@@ -153,15 +154,14 @@ class CustomerListScreen extends StatelessWidget {
                                       const SizedBox(width: 8),
                                       Text(
                                         "Start Date: ${formatStartDate(customer['start_date'])}",
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  // Mess ID
+                                  const SizedBox(height: 6),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8,
@@ -173,7 +173,7 @@ class CustomerListScreen extends StatelessWidget {
                                     ),
                                     child: Text(
                                       "Mess ID: ${customer['messId'] ?? 'N/A'}",
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 12,
                                         color: Colors.deepPurple,
                                         fontWeight: FontWeight.bold,
