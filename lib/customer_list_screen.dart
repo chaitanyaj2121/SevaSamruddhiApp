@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import intl for date formatting
 
 class CustomerListScreen extends StatelessWidget {
   final List<dynamic> customers;
 
   const CustomerListScreen({Key? key, required this.customers})
     : super(key: key);
+
+  // Function to format Timestamp to readable date
+  String formatStartDate(dynamic timestamp) {
+    if (timestamp != null && timestamp['_seconds'] != null) {
+      DateTime date = DateTime.fromMillisecondsSinceEpoch(
+        timestamp['_seconds'] * 1000,
+      );
+      return DateFormat('dd MMM yyyy').format(date); // Example: 20 Feb 2025
+    }
+    return 'N/A';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +36,6 @@ class CustomerListScreen extends StatelessWidget {
               ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-
                   children: [
                     Icon(Icons.people_outline, size: 80, color: Colors.grey),
                     const SizedBox(height: 10),
@@ -111,7 +122,6 @@ class CustomerListScreen extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-
                                   const SizedBox(height: 8),
                                   // Fees Paid
                                   Row(
@@ -124,6 +134,25 @@ class CustomerListScreen extends StatelessWidget {
                                       const SizedBox(width: 8),
                                       Text(
                                         "Fees Paid: ₹${customer['feesPaid'] ?? 0}",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // Start Date
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today,
+                                        size: 16,
+                                        color: Colors.blue,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "Start Date: ${formatStartDate(customer['start_date'])}",
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
