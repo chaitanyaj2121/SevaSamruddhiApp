@@ -4,9 +4,13 @@ import 'package:setupfirebase/firebase_options.dart';
 import 'auth_service.dart';
 import 'home_screen.dart'; // Import the HomeScreen
 import 'SignUpScreen.dart'; // Updated SignUpScreen
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'auth_helper.dart'; // Add this import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -15,11 +19,18 @@ void main() async {
   } catch (e) {
     print("❌ Firebase Initialization Failed: $e");
   }
-  runApp(const MyApp());
+
+  // Check for existing auth data
+  final authData = await AuthHelper.getAuthData();
+
+  runApp(MyApp(initialAuthData: authData));
 }
 
+// Update MyApp to accept initialAuthData
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Map<String, dynamic>? initialAuthData;
+
+  const MyApp({super.key, this.initialAuthData});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +40,12 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      home:
+          (initialAuthData != null &&
+                  AuthHelper.isTokenValid(initialAuthData!) &&
+                  initialAuthData!['uid'] != null)
+              ? HomeScreen(uid: initialAuthData!['uid'])
+              : const LoginScreen(),
     );
   }
 }
@@ -56,21 +72,39 @@ class _LoginScreenState extends State<LoginScreen> {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    final result = await _authService.login(email, password);
+    try {
+      final result = await _authService.login(email, password);
 
-    setState(() => _isLoading = false);
+      if (result['success']) {
+        // Access data through the 'data' key
+        final responseData = result['data'];
 
-    if (result['success']) {
+        // Save auth data with proper nesting
+        await AuthHelper.saveAuthData(
+          responseData['token'], // Get token from data
+          responseData['user']['uid'], // Get uid from nested user
+        );
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(uid: responseData['user']['uid']),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'])));
+      }
+    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result['message'])));
+      ).showSnackBar(SnackBar(content: Text("Login error: ${e.toString()}")));
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 

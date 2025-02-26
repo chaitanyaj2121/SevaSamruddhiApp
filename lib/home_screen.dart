@@ -9,7 +9,9 @@ import 'notifications_screen.dart'; // ✅ Import NotificationsScreen
 import 'config.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final String uid;
+
+  const HomeScreen({super.key, required this.uid});
 
   Future<List<dynamic>> fetchCustomers() async {
     final response = await http.get(Uri.parse(APIConfig.customersUrl));
