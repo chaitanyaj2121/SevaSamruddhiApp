@@ -1,11 +1,175 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class CustomerListScreen extends StatelessWidget {
+class CustomerListScreen extends StatefulWidget {
   final List<dynamic> customers;
 
   const CustomerListScreen({Key? key, required this.customers})
     : super(key: key);
+
+  @override
+  _CustomerListScreenState createState() => _CustomerListScreenState();
+}
+
+class _CustomerListScreenState extends State<CustomerListScreen> {
+  TextEditingController searchController = TextEditingController();
+  List<dynamic> filteredCustomers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filteredCustomers = widget.customers;
+  }
+
+  void _filterCustomers(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        filteredCustomers = widget.customers;
+      } else {
+        filteredCustomers =
+            widget.customers
+                .where(
+                  (customer) =>
+                      customer['name'] != null &&
+                      customer['name'].toLowerCase().contains(
+                        query.toLowerCase(),
+                      ),
+                )
+                .toList();
+      }
+    });
+  }
+
+  void _showUpdateCustomerBottomSheet(BuildContext context, dynamic customer) {
+    TextEditingController nameController = TextEditingController(
+      text: customer['name'] ?? '',
+    );
+    TextEditingController mobileController = TextEditingController(
+      text: customer['mobile'] ?? '',
+    );
+    TextEditingController startDateController = TextEditingController(
+      text: formatStartDate(customer['start_date']),
+    );
+    TextEditingController feesPaidController = TextEditingController(
+      text: customer['feesPaid']?.toString() ?? '',
+    );
+    TextEditingController suttyController = TextEditingController(text: "0");
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        bool isUpdating = false;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Manage Customer: ${customer['name']}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildReadOnlyField("Name", nameController),
+                    _buildReadOnlyField("Mobile", mobileController),
+                    _buildReadOnlyField("Start Date", startDateController),
+                    _buildEditableField("Fees Paid", feesPaidController),
+                    _buildEditableField("Sutty", suttyController),
+                    const SizedBox(height: 20),
+                    _buildUpdateButton(isUpdating, () async {
+                      setModalState(() => isUpdating = true);
+                      final updatedData = {
+                        'feesPaid': feesPaidController.text,
+                        'suttya': suttyController.text,
+                      };
+
+                      try {
+                        final response = await http.post(
+                          Uri.parse(
+                            "http://192.168.166.11:8080/customers/update/${customer['id']}",
+                          ),
+                          headers: {"Content-Type": "application/json"},
+                          body: jsonEncode(updatedData),
+                        );
+                        if (response.statusCode == 200) {
+                          setState(() {
+                            // Updating local list to reflect changes
+                            customer['feesPaid'] = feesPaidController.text;
+                            customer['suttya'] = suttyController.text;
+                          });
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        print("Error updating customer: $e");
+                      }
+                      setModalState(() => isUpdating = false);
+                    }),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildReadOnlyField(String label, TextEditingController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        TextField(
+          controller: controller,
+          readOnly: true,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _buildEditableField(String label, TextEditingController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _buildUpdateButton(bool isUpdating, VoidCallback onPressed) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.deepPurple,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+      ),
+      onPressed: isUpdating ? null : onPressed,
+      child:
+          isUpdating
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const Text("Update", style: TextStyle(color: Colors.white)),
+    );
+  }
 
   String formatStartDate(dynamic timestamp) {
     if (timestamp != null && timestamp['_seconds'] != null) {
@@ -37,159 +201,180 @@ class CustomerListScreen extends StatelessWidget {
         ),
         elevation: 6,
       ),
-      body:
-          customers.isEmpty
-              ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.people_outline, size: 80, color: Colors.grey),
-                    SizedBox(height: 10),
-                    Text(
-                      "No customers found",
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                  ],
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              controller: searchController,
+              onChanged: _filterCustomers,
+              decoration: InputDecoration(
+                hintText: 'Search by name...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              )
-              : ListView.builder(
-                itemCount: customers.length,
-                itemBuilder: (context, index) {
-                  final customer = customers[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(15),
-                      onTap: () {},
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              backgroundImage:
-                                  customer['customerImage']?['url'] != null
-                                      ? NetworkImage(
-                                        customer['customerImage']['url'],
-                                      )
-                                      : null,
-                              backgroundColor:
-                                  customer['customerImage']?['url'] == null
-                                      ? Colors.purple[100]
-                                      : Colors.transparent,
-                              radius: 30,
-                              child:
-                                  customer['customerImage']?['url'] == null
-                                      ? const Icon(
-                                        Icons.person,
-                                        color: Colors.deepPurple,
-                                        size: 30,
-                                      )
-                                      : null,
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
+              ),
+            ),
+          ),
+          Expanded(
+            child:
+                filteredCustomers.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                      itemCount: filteredCustomers.length,
+                      itemBuilder: (context, index) {
+                        final customer = filteredCustomers[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(15),
+                            onTap: () {},
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    customer['name'] ?? 'Unknown',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                  _buildCustomerAvatar(customer),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        _buildCustomerName(customer),
+                                        _buildCustomerPhone(customer),
+                                        _buildFeesPaid(customer),
+                                        _buildStartDate(customer),
+                                        _buildMessId(customer),
+                                      ],
                                     ),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.phone,
-                                        size: 16,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        customer['mobile'] ?? 'N/A',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.attach_money,
-                                        size: 16,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        "Fees Paid: ₹${customer['feesPaid'] ?? 0}",
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.calendar_today,
-                                        size: 16,
-                                        color: Colors.blue,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        "Start Date: ${formatStartDate(customer['start_date'])}",
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: Colors.deepPurple,
+                                      size: 28,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.deepPurple.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      "Mess ID: ${customer['messId'] ?? 'N/A'}",
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.deepPurple,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+                                    onPressed: () {
+                                      _showUpdateCustomerBottomSheet(
+                                        context,
+                                        customer,
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.people_outline, size: 80, color: Colors.grey),
+          SizedBox(height: 10),
+          Text(
+            "No customers found",
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerAvatar(dynamic customer) {
+    return CircleAvatar(
+      backgroundImage:
+          customer['customerImage']?['url'] != null
+              ? NetworkImage(customer['customerImage']['url'])
+              : null,
+      backgroundColor:
+          customer['customerImage']?['url'] == null
+              ? Colors.purple[100]
+              : Colors.transparent,
+      radius: 30,
+      child:
+          customer['customerImage']?['url'] == null
+              ? const Icon(Icons.person, color: Colors.deepPurple, size: 30)
+              : null,
+    );
+  }
+
+  Widget _buildCustomerName(dynamic customer) {
+    return Text(
+      customer['name'] ?? 'Unknown',
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildCustomerPhone(dynamic customer) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          const Icon(Icons.phone, size: 16, color: Colors.grey),
+          const SizedBox(width: 8),
+          Text(
+            customer['mobile'] ?? 'N/A',
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeesPaid(dynamic customer) {
+    return Row(
+      children: [
+        const Icon(Icons.attach_money, size: 16, color: Colors.green),
+        const SizedBox(width: 8),
+        Text(
+          "Paid: ₹${customer['feesPaid'] ?? 0}",
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStartDate(dynamic customer) {
+    return Row(
+      children: [
+        const Icon(Icons.calendar_today, size: 16, color: Colors.blue),
+        const SizedBox(width: 8),
+        Text(
+          "Date: ${formatStartDate(customer['start_date'])}",
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMessId(dynamic customer) {
+    return Text(
+      "Mess ID: ${customer['messId'] ?? 'N/A'}",
+      style: const TextStyle(
+        fontSize: 12,
+        color: Colors.deepPurple,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 }
