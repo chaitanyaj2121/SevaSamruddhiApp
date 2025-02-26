@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:setupfirebase/firebase_options.dart';
 import 'auth_service.dart';
 import 'home_screen.dart'; // Import the HomeScreen
+import 'SignUpScreen.dart'; // Updated SignUpScreen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Login Successful!')));
-      // Navigate to HomeScreen after successful login
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
@@ -153,7 +153,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       onPressed: () {
-                        // Navigate to SignUp Screen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -187,18 +186,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       prefixIcon: Icon(icon, color: Colors.white70),
       labelStyle: const TextStyle(color: Colors.white),
-    );
-  }
-}
-
-class SignUpScreen extends StatelessWidget {
-  const SignUpScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Sign Up")),
-      body: const Center(child: Text("Sign Up Screen")),
     );
   }
 }

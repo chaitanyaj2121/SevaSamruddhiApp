@@ -3,8 +3,7 @@ import 'package:http/http.dart' as http;
 import 'config.dart';
 
 class AuthService {
-  final String _url =
-      'https://backend-smartserveapp.onrender.com/login'; // Ensure HTTPS
+  final String _url = APIConfig.loginUrl; // Ensure HTTPS
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
