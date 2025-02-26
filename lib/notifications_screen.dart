@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:setupfirebase/config.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
@@ -21,7 +22,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> fetchNotifications() async {
-    final url = Uri.parse("http://192.168.166.11:8080/notifications");
+    final url = Uri.parse(APIConfig.notificationsUrl);
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -56,7 +57,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    final url = Uri.parse("http://192.168.166.11:8080/renew-customer");
+    final url = Uri.parse(APIConfig.renewCustUrl);
     final bodyData = {
       'customerId': notification['id'],
     }; // Ensure 'id' exists in your notification object

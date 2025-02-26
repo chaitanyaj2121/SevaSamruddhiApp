@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'config.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -35,9 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchCustomerData() async {
     try {
-      final response = await http.get(
-        Uri.parse("http://192.168.166.11:8080/dashboard"),
-      );
+      final response = await http.get(Uri.parse(APIConfig.dashboardUrl));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -87,7 +86,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
     );
 
-    final url = Uri.parse("http://192.168.166.11:8080/delete-customer");
+    final url = Uri.parse(APIConfig.deleteCustUrl);
     final bodyData = {
       'customerId': customer['id'],
     }; // Ensure 'id' matches your customer ID field
@@ -129,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
     );
 
-    final url = Uri.parse("http://192.168.166.11:8080/renew-customer");
+    final url = Uri.parse(APIConfig.renewCustUrl);
     final bodyData = {
       'customerId':
           customer['id'], // Make sure 'id' is the correct key for customer ID.
@@ -291,7 +290,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                                   // Replace 'customer['id']' with the appropriate ID field
                                   final url = Uri.parse(
-                                    "http://192.168.166.11:8080/customers/update/${customer['id']}",
+                                    "${APIConfig.baseUrl}/customers/update/${customer['id']}",
                                   );
 
                                   try {

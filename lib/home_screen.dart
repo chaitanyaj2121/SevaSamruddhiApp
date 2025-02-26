@@ -6,14 +6,13 @@ import 'AddCustomerScreen.dart';
 import 'dashboard_screen.dart'; // ✅ Import DashboardScreen
 import './widgets/smartserve_header.dart';
 import 'notifications_screen.dart'; // ✅ Import NotificationsScreen
+import 'config.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   Future<List<dynamic>> fetchCustomers() async {
-    final response = await http.get(
-      Uri.parse('http://192.168.166.11:8080/customers'),
-    );
+    final response = await http.get(Uri.parse(APIConfig.customersUrl));
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (data['success'] == true && data.containsKey('customers')) {

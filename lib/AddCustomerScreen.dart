@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import './widgets/smartserve_header.dart'; // ✅ Imported SmartServe Header
+import 'config.dart';
 
 class AddCustomerScreen extends StatefulWidget {
   @override
@@ -53,7 +54,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
       try {
         var request = http.MultipartRequest(
           'POST',
-          Uri.parse('http://192.168.166.11:8080/addCustomer'),
+          Uri.parse(APIConfig.addCustomerUrl),
         );
 
         request.fields['name'] = _nameController.text;

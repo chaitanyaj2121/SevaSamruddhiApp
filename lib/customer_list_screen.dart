@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'config.dart';
 
 class CustomerListScreen extends StatefulWidget {
   final List<dynamic> customers;
@@ -99,7 +100,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                       try {
                         final response = await http.post(
                           Uri.parse(
-                            "http://192.168.166.11:8080/customers/update/${customer['id']}",
+                            "${APIConfig.baseUrl}/customers/update/${customer['id']}",
                           ),
                           headers: {"Content-Type": "application/json"},
                           body: jsonEncode(updatedData),
