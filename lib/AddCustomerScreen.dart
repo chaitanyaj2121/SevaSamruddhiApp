@@ -115,7 +115,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
           "Add Customer",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 8, 221, 22),
         centerTitle: true,
       ),
       body: Center(
