@@ -296,13 +296,15 @@ class _NotificationCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        // Using Wrap instead of Row to handle overflow gracefully.
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
           children: [
             _buildFeeChip(
               "Paid: ₹${NumberFormat().format(paid)}",
               Colors.green,
             ),
-            const SizedBox(width: 8),
             _buildFeeChip(
               "Remaining: ₹${NumberFormat().format(remaining)}",
               Colors.red,
@@ -323,7 +325,8 @@ class _NotificationCard extends StatelessWidget {
 
   Widget _buildFeeChip(String text, Color color) {
     return Chip(
-      labelPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: -4),
+      // Changed vertical padding from -4 to 2 to avoid text overlap
+      labelPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       label: Text(
         text,
         style: const TextStyle(fontSize: 10, color: Colors.white),
