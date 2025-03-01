@@ -8,14 +8,27 @@ import './widgets/smartserve_header.dart';
 import 'notifications_screen.dart'; // ✅ Import NotificationsScreen
 import 'config.dart';
 import 'UserDataScreen.dart'; // ✅ Import UserDataScreen
+import 'package:provider/provider.dart';
+import 'auth_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   final String uid;
 
   const HomeScreen({super.key, required this.uid});
 
-  Future<List<dynamic>> fetchCustomers() async {
-    final response = await http.get(Uri.parse(APIConfig.customersUrl));
+  Future<List<dynamic>> fetchCustomers(BuildContext context) async {
+    // Obtain the messId from your AuthProvider
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messId = authProvider.authData?['user']['uid'];
+
+    // Append the messId as a query parameter to your API URL
+    final uri = Uri.parse(
+      APIConfig.customersUrl,
+    ).replace(queryParameters: {'messId': messId});
+
+    // Send the GET request with the updated URI
+    final response = await http.get(uri);
+
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (data['success'] == true && data.containsKey('customers')) {
@@ -55,7 +68,11 @@ class HomeScreen extends StatelessWidget {
                   separatorBuilder:
                       (context, index) => const SizedBox(height: 20),
                   itemBuilder: (context, index) {
-                    return _buildFeatureCard(context, index, fetchCustomers);
+                    return _buildFeatureCard(
+                      context,
+                      index,
+                      () => fetchCustomers(context),
+                    );
                   },
                 ),
               ),
