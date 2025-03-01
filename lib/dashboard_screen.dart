@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'config.dart';
+import 'package:provider/provider.dart';
+import 'auth_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -36,13 +38,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchCustomerData() async {
     try {
-      final response = await http.get(Uri.parse(APIConfig.dashboardUrl));
+      // Retrieve messId from your AuthProvider
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final messId = authProvider.authData?['user']['uid'];
+
+      // Build the URI with the messId as a query parameter
+      final uri = Uri.parse(
+        APIConfig.dashboardUrl,
+      ).replace(queryParameters: {'messId': messId.toString()});
+
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
           customers = data['customers'] ?? [];
-          filteredCustomers = List.from(customers); // Initialize filtered list
+          filteredCustomers = List.from(customers);
         });
       }
     } catch (e) {
