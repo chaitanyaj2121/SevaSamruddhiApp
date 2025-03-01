@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'auth_provider.dart';
 import 'home_screen.dart';
-import 'login_screen.dart'; // Updated LoginScreen code below
+import 'login_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
@@ -30,6 +30,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
+        // If still loading auth data, display a simple loading indicator.
+        if (authProvider.isLoading) {
+          return MaterialApp(
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
+        }
         return MaterialApp(
           title: 'SmartServe',
           theme: ThemeData(
