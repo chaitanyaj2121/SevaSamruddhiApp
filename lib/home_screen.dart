@@ -7,6 +7,7 @@ import 'dashboard_screen.dart'; // ✅ Import DashboardScreen
 import './widgets/smartserve_header.dart';
 import 'notifications_screen.dart'; // ✅ Import NotificationsScreen
 import 'config.dart';
+import 'UserDataScreen.dart'; // ✅ Import UserDataScreen
 
 class HomeScreen extends StatelessWidget {
   final String uid;
@@ -210,6 +211,12 @@ class HomeScreen extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+      );
+    } else if (feature['title'] == 'Reports') {
+      // Navigate to the UserDataScreen when the Reports card is tapped.
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const UserDataScreen()),
       );
     } else if (feature['action'] != null) {
       _handleFetchAction(
