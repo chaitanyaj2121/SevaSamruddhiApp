@@ -3,13 +3,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'customer_list_screen.dart';
 import 'AddCustomerScreen.dart';
-import 'dashboard_screen.dart'; // ✅ Import DashboardScreen
-import './widgets/smartserve_header.dart';
-import 'notifications_screen.dart'; // ✅ Import NotificationsScreen
+import 'dashboard_screen.dart';
+
+import 'notifications_screen.dart';
 import 'config.dart';
-import 'UserDataScreen.dart'; // ✅ Import UserDataScreen
 import 'package:provider/provider.dart';
 import 'auth_provider.dart';
+import 'login_screen.dart';
+import 'UserDataScreen.dart';
 
 class HomeScreen extends StatelessWidget {
   final String uid;
@@ -17,18 +18,14 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.uid});
 
   Future<List<dynamic>> fetchCustomers(BuildContext context) async {
-    // Obtain the messId from your AuthProvider
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final messId = authProvider.authData?['user']['uid'];
 
-    // Append the messId as a query parameter to your API URL
     final uri = Uri.parse(
       APIConfig.customersUrl,
     ).replace(queryParameters: {'messId': messId});
 
-    // Send the GET request with the updated URI
     final response = await http.get(uri);
-
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (data['success'] == true && data.containsKey('customers')) {
@@ -44,35 +41,100 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SmartServeHeader(),
+      appBar: AppBar(
+        toolbarHeight: 80,
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.deepPurple.shade700, Colors.purple.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  'SmartServe',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () async {
+                  final authProvider = Provider.of<AuthProvider>(
+                    context,
+                    listen: false,
+                  );
+                  await authProvider.logout();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.logout, color: Colors.white, size: 18),
+                      SizedBox(width: 6),
+                      Text(
+                        'Logout',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.grey[200]!, Colors.grey[100]!],
+            colors: [Colors.white, Color(0xFFF5F5F5)],
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 30),
-              _buildHeader(),
-              const SizedBox(height: 40),
+              _buildWelcomeHeader(),
+              const SizedBox(height: 20),
               Expanded(
                 child: ListView.separated(
                   shrinkWrap: true,
                   physics: const BouncingScrollPhysics(),
                   itemCount: 4,
                   separatorBuilder:
-                      (context, index) => const SizedBox(height: 20),
+                      (context, index) => const SizedBox(height: 15),
                   itemBuilder: (context, index) {
-                    return _buildFeatureCard(
-                      context,
-                      index,
-                      () => fetchCustomers(context),
-                    );
+                    return _buildFeatureCard(context, index);
                   },
                 ),
               ),
@@ -80,130 +142,158 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddCustomerScreen()),
           );
         },
+        icon: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 20),
+        label: const Text(
+          'Add Customer',
+          style: TextStyle(fontSize: 14, color: Colors.white),
+        ),
         backgroundColor: Colors.purple,
-        elevation: 8,
-        child: const Icon(Icons.person_add, color: Colors.white, size: 28),
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        Text(
-          'SmartServe Manager',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
-            letterSpacing: 1.2,
+  Widget _buildWelcomeHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Welcome Back!',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Manage your restaurant operations',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey[600],
-            fontStyle: FontStyle.italic,
+          const SizedBox(height: 6),
+          Text(
+            'Manage restaurant operations',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildFeatureCard(
-    BuildContext context,
-    int index,
-    Future<List<dynamic>> Function() fetchCustomers,
-  ) {
+  Widget _buildFeatureCard(BuildContext context, int index) {
     final features = [
       {
         'title': 'Customers',
         'icon': Icons.people_alt_rounded,
-        'color': Colors.blue,
-        'action': fetchCustomers,
+        'color': [Colors.blue.shade600, Colors.blue.shade400],
+        'action': () async {
+          try {
+            final customers = await fetchCustomers(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CustomerListScreen(customers: customers),
+              ),
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${e.toString()}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
       },
       {
         'title': 'Dashboard',
         'icon': Icons.analytics_rounded,
-        'color': Colors.green,
-        'action': null,
+        'color': [Colors.green.shade600, Colors.green.shade400],
+        'action':
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DashboardScreen()),
+            ),
       },
       {
         'title': 'Notifications',
         'icon': Icons.notifications_active_rounded,
-        'color': Colors.orange,
-        'action': null,
+        'color': [Colors.orange.shade600, Colors.orange.shade400],
+        'action':
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationsScreen(),
+              ),
+            ),
       },
       {
         'title': 'Reports',
-        'icon': Icons.assignment_rounded,
-        'color': Colors.purple,
-        'action': null,
+        'icon': Icons.assessment_rounded,
+        'color': [Colors.purple.shade600, Colors.purple.shade400],
+        'action': () {
+          /* Add reports navigation */
+        },
       },
     ];
+
     final feature = features[index];
 
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => _handleFeatureTap(context, feature),
+        borderRadius: BorderRadius.circular(16),
+        onTap: feature['action'] as void Function()?,
         child: Container(
-          height: 120,
+          height: 100,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                (feature['color'] as Color).withOpacity(0.9),
-                (feature['color'] as Color).withOpacity(0.7),
-              ],
+              colors: feature['color'] as List<Color>,
             ),
           ),
           child: Stack(
             children: [
               Positioned(
-                right: -30,
-                top: -30,
+                right: -20,
+                top: -20,
                 child: Icon(
                   feature['icon'] as IconData,
-                  size: 120,
+                  size: 100,
                   color: Colors.white.withOpacity(0.15),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       feature['icon'] as IconData,
-                      size: 32,
+                      size: 28,
                       color: Colors.white,
                     ),
                     const Spacer(),
                     Text(
                       feature['title'] as String,
                       style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
                         shadows: [
                           Shadow(
-                            blurRadius: 2,
+                            blurRadius: 4,
                             color: Colors.black26,
-                            offset: Offset(1, 1),
+                            offset: Offset(2, 2),
                           ),
                         ],
                       ),

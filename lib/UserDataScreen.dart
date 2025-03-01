@@ -17,24 +17,18 @@ class UserDataScreen extends StatelessWidget {
           userData != null
               ? Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Display the user ID (assuming it exists as shown).
-                    Text(
-                      'User ID: ${userData['user']['uid']}',
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    const SizedBox(height: 10),
-                    // Optionally display more user details if available.
-                    if (userData['user']['email'] != null)
-                      Text(
-                        'Email: ${userData['user']['email']}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    // Add any additional fields you have in your user data.
-                  ],
-                ),
+                child:
+                    userData['user'] is Map
+                        ? ListView(
+                          children:
+                              (userData['user'] as Map).entries.map((entry) {
+                                return ListTile(
+                                  title: Text('${entry.key}'),
+                                  subtitle: Text('${entry.value}'),
+                                );
+                              }).toList(),
+                        )
+                        : Center(child: Text(userData.toString())),
               )
               : const Center(
                 child: Text(

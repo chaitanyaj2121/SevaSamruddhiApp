@@ -49,6 +49,10 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> logout() async {
+    await removeAuthData();
+  }
+
   // Clear auth data using AuthHelper and update provider state
   Future<void> removeAuthData() async {
     await AuthHelper.clearAuthData();
