@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import './widgets/smartserve_header.dart'; // ✅ Imported SmartServe Header
 import 'config.dart';
+import 'auth_provider.dart';
 
 class AddCustomerScreen extends StatefulWidget {
   @override
@@ -21,6 +23,20 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   bool isLoading = false; // ✅ Loading state
 
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Auto-populate the messId with the logged-in user's UID from AuthProvider.
+    // Using didChangeDependencies ensures that the context is available.
+    if (_messIdController.text.isEmpty) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final uid = authProvider.authData?['user']['uid'];
+      if (uid != null) {
+        _messIdController.text = uid.toString();
+      }
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
@@ -47,6 +63,13 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      if (_messIdController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mess ID is not defined.')),
+        );
+        return;
+      }
+
       setState(() {
         isLoading = true; // ✅ Show loading indicator
       });
@@ -62,8 +85,8 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         request.fields['feesPaid'] =
             double.tryParse(_feesController.text)?.toString() ?? '0.0';
 
-        request.fields['messId'] =
-            int.tryParse(_messIdController.text)?.toString() ?? '0';
+        // Only send messId (which is the auto-populated UID as a string)
+        request.fields['messId'] = _messIdController.text;
 
         request.fields['start_date'] =
             _selectedDate != null
@@ -71,17 +94,13 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 : DateTime.now().toIso8601String();
 
         if (_imageFile != null && await _imageFile!.exists()) {
-          // print('Adding file to request: ${_imageFile!.path}');
           request.files.add(
             await http.MultipartFile.fromPath('file', _imageFile!.path),
           );
-        } else {
-          // print('No file selected');
         }
 
         var response = await request.send();
         var responseBody = await response.stream.bytesToString();
-        // print('Response Body: $responseBody');
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -174,7 +193,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  /// Mess ID Field
+                  // Mess ID Field (read-only, auto-populated)
                   TextFormField(
                     controller: _messIdController,
                     decoration: InputDecoration(
@@ -182,19 +201,8 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                       prefixIcon: Icon(Icons.business),
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.number, // ✅ Allow only numbers
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Enter mess ID';
-                      }
-                      if (int.tryParse(value) == null) {
-                        // ✅ Ensure it's a valid integer
-                        return 'Mess ID must be a number';
-                      }
-                      return null;
-                    },
+                    readOnly: true,
                   ),
-
                   const SizedBox(height: 10),
 
                   // Date Picker
@@ -234,19 +242,17 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                       prefixIcon: Icon(Icons.money),
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.number, // ✅ Allow only numbers
+                    keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Enter amount';
                       }
                       if (int.tryParse(value) == null) {
-                        // ✅ Ensure it's a valid integer
                         return 'Enter a valid number';
                       }
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 10),
 
                   // Image Upload
@@ -301,15 +307,10 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
-                      onPressed:
-                          isLoading
-                              ? null
-                              : _submitForm, // ✅ Disabled while loading
+                      onPressed: isLoading ? null : _submitForm,
                       child:
                           isLoading
-                              ? CircularProgressIndicator(
-                                color: Colors.white,
-                              ) // ✅ Show loader
+                              ? CircularProgressIndicator(color: Colors.white)
                               : const Text(
                                 'Add Customer',
                                 style: TextStyle(
