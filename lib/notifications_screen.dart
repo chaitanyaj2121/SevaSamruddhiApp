@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:setupfirebase/config.dart';
+import 'package:provider/provider.dart';
+import 'auth_provider.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
@@ -22,7 +24,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> fetchNotifications() async {
-    final url = Uri.parse(APIConfig.notificationsUrl);
+    // Retrieve the messId from AuthProvider
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messId = authProvider.authData?['user']['uid'];
+
+    // Build the URL with the messId query parameter
+    final url = Uri.parse(
+      APIConfig.notificationsUrl,
+    ).replace(queryParameters: {'messId': messId.toString()});
+
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -33,19 +43,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             isLoading = false;
           });
         } else {
-          setState(() {
-            isLoading = false;
-          });
+          setState(() => isLoading = false);
         }
       } else {
-        setState(() {
-          isLoading = false;
-        });
+        setState(() => isLoading = false);
       }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
       print("Error fetching notifications: $e");
     }
   }

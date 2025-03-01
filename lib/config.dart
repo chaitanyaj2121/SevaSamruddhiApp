@@ -8,4 +8,6 @@ class APIConfig {
   static const String deleteCustUrl = baseUrl + "/delete-customer";
   static const String renewCustUrl = baseUrl + "/renew-customer";
   static const String notificationsUrl = baseUrl + "/notifications";
+  // http://192.168.166.11:8080"
+  static const String signupBusinessUrl = baseUrl + "/signup/business";
 }

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'auth_service.dart';
 import 'home_screen.dart';
-// import 'sign_up_screen.dart';
+import 'SignUpScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -163,7 +163,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             duration: Duration(seconds: 2),
                           ),
                         );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SignUpScreen(),
+                          ),
+                        );
                       },
+
                       child: const Text(
                         "Sign Up",
                         style: TextStyle(fontSize: 18),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:setupfirebase/config.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -29,7 +30,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     setState(() => _isLoading = true);
 
-    final url = Uri.parse("http://192.168.166.11:8080/signup/business");
+    final url = Uri.parse(APIConfig.signupBusinessUrl);
     final bodyData = {
       "businessName": _businessNameController.text.trim(),
       "ownerName": _ownerNameController.text.trim(),
