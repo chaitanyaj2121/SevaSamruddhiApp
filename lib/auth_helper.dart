@@ -2,19 +2,27 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// lib/helpers/auth_helper.dart
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthHelper {
   static const _storage = FlutterSecureStorage();
   static const _prefsKey = 'auth_data';
 
-  // Save authentication data
-  static Future<void> saveAuthData(String token, String uid) async {
+  // Save authentication data including fees
+  static Future<void> saveAuthData(
+    String token,
+    String uid,
+    dynamic fees,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
       _prefsKey,
       jsonEncode({
         'token': token,
-        'uid': uid,
+        'user': {'uid': uid, 'fees': fees},
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       }),
     );
@@ -33,7 +41,7 @@ class AuthHelper {
     await prefs.remove(_prefsKey);
   }
 
-  // In auth_helper.dart
+  // Check if the token is still valid
   static bool isTokenValid(Map<String, dynamic>? data) {
     if (data == null) return false;
     final storedTime = DateTime.fromMillisecondsSinceEpoch(data['timestamp']);
