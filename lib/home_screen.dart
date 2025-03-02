@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'customer_list_screen.dart';
 import 'AddCustomerScreen.dart';
 import 'dashboard_screen.dart';
-
+import 'profile.dart'; // Import the BusinessProfileScreen
 import 'notifications_screen.dart';
 import 'config.dart';
 import 'package:provider/provider.dart';
@@ -233,11 +233,17 @@ class HomeScreen extends StatelessWidget {
             ),
       },
       {
-        'title': 'Reports',
-        'icon': Icons.assessment_rounded,
+        'title': 'Profile', // Changed from 'Reports' to 'Profile'
+        'icon': Icons.business_rounded, // Changed icon to business
         'color': [Colors.purple.shade600, Colors.purple.shade400],
         'action': () {
-          /* Add reports navigation */
+          // Navigate to BusinessProfileScreen when Profile card is tapped
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const BusinessProfileScreen(),
+            ),
+          );
         },
       },
     ];
@@ -319,11 +325,12 @@ class HomeScreen extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (context) => const NotificationsScreen()),
       );
-    } else if (feature['title'] == 'Reports') {
-      // Navigate to the UserDataScreen when the Reports card is tapped.
+    } else if (feature['title'] == 'Profile') {
+      // Changed from 'Reports' to 'Profile'
+      // Navigate to the BusinessProfileScreen when the Profile card is tapped
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const UserDataScreen()),
+        MaterialPageRoute(builder: (context) => const BusinessProfileScreen()),
       );
     } else if (feature['action'] != null) {
       _handleFetchAction(
