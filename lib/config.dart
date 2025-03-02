@@ -1,5 +1,5 @@
 class APIConfig {
-  static const String baseUrl = 'http://192.168.166.11:8080';
+  static const String baseUrl = 'https://backend-smartserveapp.onrender.com';
   // Change to 'https://backend-smartserveapp.onrender.com' if testing locally.
   static const String customersUrl = baseUrl + "/customers";
   static const String addCustomerUrl = baseUrl + "/addCustomer";
