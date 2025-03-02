@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart'; // ✅ Imported SmartServe Header
+import 'package:provider/provider.dart';
 import 'config.dart';
 import 'auth_provider.dart';
 
@@ -16,18 +16,19 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _feesController = TextEditingController();
-  final TextEditingController _messIdController = TextEditingController();
+  final TextEditingController _messIdController =
+      TextEditingController(); // Still keep this controller
   DateTime? _selectedDate;
   File? _imageFile;
-  bool isLoading = false; // ✅ Loading state
+  bool isLoading = false;
 
   final ImagePicker _picker = ImagePicker();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Auto-populate the messId with the logged-in user's UID from AuthProvider.
-    // Using didChangeDependencies ensures that the context is available.
+    // Auto-populate the messId with the logged-in user's UID from AuthProvider
+    // but don't display it in the UI
     if (_messIdController.text.isEmpty) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final uid = authProvider.authData?['user']['uid'];
@@ -70,7 +71,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
       }
 
       setState(() {
-        isLoading = true; // ✅ Show loading indicator
+        isLoading = true;
       });
 
       try {
@@ -84,7 +85,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         request.fields['feesPaid'] =
             double.tryParse(_feesController.text)?.toString() ?? '0.0';
 
-        // Only send messId (which is the auto-populated UID as a string)
+        // Still include messId in the request even though it's hidden in UI
         request.fields['messId'] = _messIdController.text;
 
         request.fields['start_date'] =
@@ -118,7 +119,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
       } finally {
         setState(() {
-          isLoading = false; // ✅ Hide loading indicator after response
+          isLoading = false;
         });
       }
     }
@@ -192,17 +193,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Mess ID Field (read-only, auto-populated)
-                  TextFormField(
-                    controller: _messIdController,
-                    decoration: InputDecoration(
-                      labelText: 'Mess ID',
-                      prefixIcon: Icon(Icons.business),
-                      border: OutlineInputBorder(),
-                    ),
-                    readOnly: true,
-                  ),
-                  const SizedBox(height: 10),
+                  // Removed Mess ID field from UI, but still using the controller
 
                   // Date Picker
                   InkWell(

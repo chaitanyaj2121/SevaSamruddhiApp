@@ -17,11 +17,18 @@ class CustomerListScreen extends StatefulWidget {
 class _CustomerListScreenState extends State<CustomerListScreen> {
   TextEditingController searchController = TextEditingController();
   List<dynamic> filteredCustomers = [];
+  bool isLoading = true; // Add loading state
 
   @override
   void initState() {
     super.initState();
-    filteredCustomers = widget.customers;
+    // Simulate loading delay to show loading state
+    Future.delayed(const Duration(seconds: 1), () {
+      setState(() {
+        filteredCustomers = widget.customers;
+        isLoading = false;
+      });
+    });
   }
 
   void _filterCustomers(String query) {
@@ -202,82 +209,107 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
         ),
         elevation: 6,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              controller: searchController,
-              onChanged: _filterCustomers,
-              decoration: InputDecoration(
-                hintText: 'Search by name...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child:
-                filteredCustomers.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                      itemCount: filteredCustomers.length,
-                      itemBuilder: (context, index) {
-                        final customer = filteredCustomers[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          elevation: 5,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(15),
-                            onTap: () {},
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _buildCustomerAvatar(customer),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        _buildCustomerName(customer),
-                                        _buildCustomerPhone(customer),
-                                        _buildFeesPaid(customer),
-                                        _buildStartDate(customer),
-                                        _buildMessId(customer),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.deepPurple,
-                                      size: 28,
-                                    ),
-                                    onPressed: () {
-                                      _showUpdateCustomerBottomSheet(
-                                        context,
-                                        customer,
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+      body:
+          isLoading
+              ? _buildLoadingState() // Display loading state
+              : Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: _filterCustomers,
+                      decoration: InputDecoration(
+                        hintText: 'Search by name...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
+                  ),
+                  Expanded(
+                    child:
+                        filteredCustomers.isEmpty
+                            ? _buildEmptyState()
+                            : ListView.builder(
+                              itemCount: filteredCustomers.length,
+                              itemBuilder: (context, index) {
+                                final customer = filteredCustomers[index];
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  elevation: 5,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(15),
+                                    onTap: () {},
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          _buildCustomerAvatar(customer),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _buildCustomerName(customer),
+                                                _buildCustomerPhone(customer),
+                                                _buildFeesPaid(customer),
+                                                _buildStartDate(customer),
+                                                // Removed MessID display as requested
+                                              ],
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              color: Colors.deepPurple,
+                                              size: 28,
+                                            ),
+                                            onPressed: () {
+                                              _showUpdateCustomerBottomSheet(
+                                                context,
+                                                customer,
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                  ),
+                ],
+              ),
+    );
+  }
+
+  // New method to display loading state
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          CircularProgressIndicator(color: Colors.deepPurple, strokeWidth: 5),
+          SizedBox(height: 20),
+          Text(
+            "Loading customers...",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.deepPurple,
+            ),
           ),
         ],
       ),
@@ -368,14 +400,5 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
-  Widget _buildMessId(dynamic customer) {
-    return Text(
-      "Mess ID: ${customer['messId'] ?? 'N/A'}",
-      style: const TextStyle(
-        fontSize: 12,
-        color: Colors.deepPurple,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
+  // Removed _buildMessId method as it's no longer needed
 }
