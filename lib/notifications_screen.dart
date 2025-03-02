@@ -200,7 +200,6 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final formattedDate = _formatDate(notification);
     final feesPaid = _calculateFeesPaid(notification);
-    final feesRemaining = 2300 - feesPaid;
 
     return Container(
       decoration: BoxDecoration(
@@ -238,7 +237,7 @@ class _NotificationCard extends StatelessWidget {
                   _buildInfoRow(Icons.phone, notification['mobile'] ?? 'N/A'),
                   _buildInfoRow(Icons.calendar_today, formattedDate),
                   const SizedBox(height: 8),
-                  _buildFeeIndicator(feesPaid, feesRemaining),
+                  _buildFeeIndicator(feesPaid),
                 ],
               ),
             ),
@@ -292,11 +291,10 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFeeIndicator(int paid, int remaining) {
+  Widget _buildFeeIndicator(int paid) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Using Wrap instead of Row to handle overflow gracefully.
         Wrap(
           spacing: 8,
           runSpacing: 4,
@@ -304,10 +302,6 @@ class _NotificationCard extends StatelessWidget {
             _buildFeeChip(
               "Paid: ₹${NumberFormat().format(paid)}",
               Colors.green,
-            ),
-            _buildFeeChip(
-              "Remaining: ₹${NumberFormat().format(remaining)}",
-              Colors.red,
             ),
           ],
         ),

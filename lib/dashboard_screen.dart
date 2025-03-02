@@ -16,6 +16,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoading = true;
   TextEditingController _searchController = TextEditingController();
   List<dynamic> filteredCustomers = [];
+  int? userFees;
   void _filterCustomers(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -38,15 +39,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _fetchCustomerData() async {
     try {
-      // Retrieve messId from your AuthProvider
+      // Retrieve messId and fees from your AuthProvider
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final messId = authProvider.authData?['user']['uid'];
+      final fees = authProvider.authData?['user']['fees'];
 
-      // Build the URI with the messId as a query parameter
-      final uri = Uri.parse(
-        APIConfig.dashboardUrl,
-      ).replace(queryParameters: {'messId': messId.toString()});
-
+      setState(() {
+        userFees = fees; // Add this line
+      });
+      // Build the URI with both messId and fees as query parameters
+      final uri = Uri.parse(APIConfig.dashboardUrl).replace(
+        queryParameters: {'messId': messId.toString(), 'fees': fees.toString()},
+      );
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
@@ -474,7 +478,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                     ),
                                                     const SizedBox(height: 8),
                                                     Text(
-                                                      "Fees Remaining: ₹${2300 - (customer['feesPaid'] ?? 0)}",
+                                                      "Fees Remaining: ₹${(userFees ?? 0) - (customer['feesPaid'] ?? 0)}",
                                                       style: TextStyle(
                                                         fontSize: 14,
                                                         fontWeight:
