@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:setupfirebase/config.dart';
 import 'auth_provider.dart';
+import 'update_profile.dart';
 
 class BusinessProfileScreen extends StatefulWidget {
   const BusinessProfileScreen({Key? key}) : super(key: key);
@@ -25,6 +26,11 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   }
 
   Future<void> _fetchBusinessProfile() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       // Get the user ID from auth provider
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -95,6 +101,27 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
         title: const Text('Business Profile'),
         backgroundColor: Colors.indigo,
         elevation: 0,
+        actions: [
+          if (!_isLoading && _businessData != null)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => UpdateBusinessProfileScreen(
+                          initialData: _businessData,
+                        ),
+                  ),
+                );
+
+                if (result == true) {
+                  _fetchBusinessProfile(); // Refresh data after successful update
+                }
+              },
+            ),
+        ],
       ),
       body:
           _isLoading
