@@ -5,6 +5,17 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+import java.util.Properties
+import java.io.FileInputStream
+
+// Load keystore properties from key.properties file
+val keystoreProperties = Properties().apply {
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    if (keystorePropertiesFile.exists()) {
+         load(FileInputStream(keystorePropertiesFile))
+    }
+}
+
 android {
     namespace = "com.example.setupfirebase"
     
@@ -18,23 +29,34 @@ android {
         versionName = "1.0"
     }
 
-   buildTypes {
-    release {
-        isMinifyEnabled = true  // ✅ Enables code shrinking (R8)
-        isShrinkResources = true // ✅ Enables resource shrinking
-
-        proguardFiles(
-            getDefaultProguardFile("proguard-android-optimize.txt"),
-            "proguard-rules.pro"
-        )
+    // Configure signing using the properties loaded above
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+        }
     }
+    
+    buildTypes {
+        release {
+            isMinifyEnabled = true  // ✅ Enables code shrinking (R8)
+            isShrinkResources = true // ✅ Enables resource shrinking
 
-    debug {
-        isMinifyEnabled = false  // Debug builds should not shrink code
-        isShrinkResources = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // Use the release signing configuration
+            signingConfig = signingConfigs.getByName("release")
+        }
+
+        debug {
+            isMinifyEnabled = false  // Debug builds should not shrink code
+            isShrinkResources = false
+        }
     }
-}
-
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
