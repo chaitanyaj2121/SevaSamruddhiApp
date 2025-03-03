@@ -1,8 +1,3 @@
-// lib/helpers/auth_helper.dart
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-// lib/helpers/auth_helper.dart
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,10 +36,10 @@ class AuthHelper {
     await prefs.remove(_prefsKey);
   }
 
-  // Check if the token is still valid
+  // Check if the token is still valid (updated to 7 days)
   static bool isTokenValid(Map<String, dynamic>? data) {
     if (data == null) return false;
     final storedTime = DateTime.fromMillisecondsSinceEpoch(data['timestamp']);
-    return DateTime.now().difference(storedTime) < const Duration(hours: 6);
+    return DateTime.now().difference(storedTime) < const Duration(days: 7);
   }
 }
