@@ -5,10 +5,10 @@ import 'dart:convert';
 import 'config.dart';
 
 class CustomerListScreen extends StatefulWidget {
-  final List<dynamic> customers;
+  final String? messId;
 
-  const CustomerListScreen({Key? key, required this.customers})
-    : super(key: key);
+  // Changed constructor to accept messId instead of customers
+  const CustomerListScreen({Key? key, required this.messId}) : super(key: key);
 
   @override
   _CustomerListScreenState createState() => _CustomerListScreenState();
@@ -16,28 +16,68 @@ class CustomerListScreen extends StatefulWidget {
 
 class _CustomerListScreenState extends State<CustomerListScreen> {
   TextEditingController searchController = TextEditingController();
+  List<dynamic> customers = [];
   List<dynamic> filteredCustomers = [];
-  bool isLoading = true; // Add loading state
+  bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Simulate loading delay to show loading state
-    Future.delayed(const Duration(seconds: 1), () {
+    // Fetch customers when the screen initializes
+    fetchCustomers();
+  }
+
+  // New method to fetch customers directly in this screen
+  Future<void> fetchCustomers() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final uri = Uri.parse(
+        APIConfig.customersUrl,
+      ).replace(queryParameters: {'messId': widget.messId});
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (data['success'] == true && data.containsKey('customers')) {
+          setState(() {
+            customers = data['customers'];
+            filteredCustomers = customers;
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            errorMessage = 'Invalid response format';
+            isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          errorMessage =
+              'Failed to load customers. Status: ${response.statusCode}';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
       setState(() {
-        filteredCustomers = widget.customers;
+        errorMessage = 'Error: ${e.toString()}';
         isLoading = false;
       });
-    });
+    }
   }
 
   void _filterCustomers(String query) {
     setState(() {
       if (query.isEmpty) {
-        filteredCustomers = widget.customers;
+        filteredCustomers = customers;
       } else {
         filteredCustomers =
-            widget.customers
+            customers
                 .where(
                   (customer) =>
                       customer['name'] != null &&
@@ -208,10 +248,19 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           ),
         ),
         elevation: 6,
+        actions: [
+          // Added refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: fetchCustomers,
+          ),
+        ],
       ),
       body:
           isLoading
-              ? _buildLoadingState() // Display loading state
+              ? _buildLoadingState()
+              : errorMessage != null
+              ? _buildErrorState()
               : Column(
                 children: [
                   Padding(
@@ -265,7 +314,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                                 _buildCustomerPhone(customer),
                                                 _buildFeesPaid(customer),
                                                 _buildStartDate(customer),
-                                                // Removed MessID display as requested
                                               ],
                                             ),
                                           ),
@@ -295,7 +343,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
-  // New method to display loading state
   Widget _buildLoadingState() {
     return Center(
       child: Column(
@@ -309,6 +356,36 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.deepPurple,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // New method to display error state
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 80, color: Colors.red),
+          const SizedBox(height: 16),
+          Text(
+            errorMessage ?? "An error occurred",
+            style: const TextStyle(fontSize: 18, color: Colors.red),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: fetchCustomers,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            ),
+            child: const Text(
+              "Try Again",
+              style: TextStyle(color: Colors.white),
             ),
           ),
         ],
@@ -399,6 +476,4 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       ],
     );
   }
-
-  // Removed _buildMessId method as it's no longer needed
 }

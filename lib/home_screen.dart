@@ -10,33 +10,12 @@ import 'config.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'login_screen.dart';
-import 'about_help_screen.dart'; // Import the new About/Help screen
+import 'about_help_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final String uid;
 
   const HomeScreen({super.key, required this.uid});
-
-  Future<List<dynamic>> fetchCustomers(BuildContext context) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final messId = authProvider.authData?['user']['uid'];
-
-    final uri = Uri.parse(
-      APIConfig.customersUrl,
-    ).replace(queryParameters: {'messId': messId});
-
-    final response = await http.get(uri);
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      if (data['success'] == true && data.containsKey('customers')) {
-        return data['customers'];
-      } else {
-        throw Exception('Invalid response format');
-      }
-    } else {
-      throw Exception('Failed to load customers');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +119,7 @@ class HomeScreen extends StatelessWidget {
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
-                itemCount: 5, // Increased to 5 to include About/Help
+                itemCount: 5,
                 separatorBuilder:
                     (context, index) => const SizedBox(height: 15),
                 itemBuilder: (context, index) {
@@ -214,23 +193,21 @@ class HomeScreen extends StatelessWidget {
         'title': 'Customers',
         'icon': Icons.people_alt_rounded,
         'color': [Colors.blue.shade600, Colors.blue.shade400],
-        'action': () async {
-          try {
-            final customers = await fetchCustomers(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CustomerListScreen(customers: customers),
-              ),
-            );
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error: ${e.toString()}'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+        'action': () {
+          // Get messId before navigating to CustomerListScreen
+          final authProvider = Provider.of<AuthProvider>(
+            context,
+            listen: false,
+          );
+          final messId = authProvider.authData?['user']['uid'];
+
+          // Navigate to CustomerListScreen with messId
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CustomerListScreen(messId: messId),
+            ),
+          );
         },
       },
       {
@@ -345,58 +322,5 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  // Note: These methods can be removed as they're no longer used after refactoring
-  void _handleFeatureTap(BuildContext context, Map<String, dynamic> feature) {
-    if (feature['title'] == 'Dashboard') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => DashboardScreen()),
-      );
-    } else if (feature['title'] == 'Notifications') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-      );
-    } else if (feature['title'] == 'Profile') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const BusinessProfileScreen()),
-      );
-    } else if (feature['title'] == 'About & Help') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const AboutHelpScreen()),
-      );
-    } else if (feature['action'] != null) {
-      _handleFetchAction(
-        context,
-        feature['action'] as Future<List<dynamic>> Function(),
-      );
-    }
-  }
-
-  void _handleFetchAction(
-    BuildContext context,
-    Future<List<dynamic>> Function() fetchFunction,
-  ) async {
-    try {
-      final customers = await fetchFunction();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CustomerListScreen(customers: customers),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
   }
 }
