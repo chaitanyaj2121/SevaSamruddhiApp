@@ -307,7 +307,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
             const Divider(height: 24),
             _buildDetailRow(
               icon: Icons.currency_rupee,
-              title: 'Monthly Rent',
+              title: 'Monthly fees',
               value: '₹${_businessData?['rent']?.toString() ?? 'N/A'}',
             ),
           ],
