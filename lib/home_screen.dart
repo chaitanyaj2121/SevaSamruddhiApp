@@ -11,14 +11,49 @@ import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'login_screen.dart';
 import 'about_help_screen.dart';
+import 'subscription_provider.dart';
+import 'subscription_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final String uid;
 
   const HomeScreen({super.key, required this.uid});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeSubscription();
+  }
+
+  Future<void> _initializeSubscription() async {
+    // Initialize subscription status
+    final subscriptionProvider = Provider.of<SubscriptionProvider>(
+      context,
+      listen: false,
+    );
+    await subscriptionProvider.initialize(widget.uid);
+    setState(() {
+      _isInitialized = true;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: Colors.purple.shade600),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: _buildAppBar(context),
       body: _buildBody(context),
@@ -55,48 +90,169 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            InkWell(
-              onTap: () async {
-                final authProvider = Provider.of<AuthProvider>(
-                  context,
-                  listen: false,
-                );
-                await authProvider.logout();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
-              },
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+            Row(
+              children: [
+                _buildSubscriptionIndicator(),
+                const SizedBox(width: 10),
+                InkWell(
+                  onTap: () async {
+                    final authProvider = Provider.of<AuthProvider>(
+                      context,
+                      listen: false,
+                    );
+                    await authProvider.logout();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                    );
+                  },
                   borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.white, size: 18),
-                    SizedBox(width: 6),
-                    Text(
-                      'Logout',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                  ],
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.white, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionIndicator() {
+    final subscriptionProvider = Provider.of<SubscriptionProvider>(context);
+
+    if (subscriptionProvider.hasActiveSubscription) {
+      final endDate = subscriptionProvider.currentSubscription!.endDate;
+      final remainingDays = endDate.difference(DateTime.now()).inDays;
+
+      return InkWell(
+        onTap: () {
+          _showSubscriptionDetails(context);
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.green.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                '$remainingDays days left',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) =>
+                    const SubscriptionScreen(featureTitle: 'Premium Features'),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.red.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.card_membership, color: Colors.white, size: 18),
+            SizedBox(width: 6),
+            Text(
+              'Subscribe',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _showSubscriptionDetails(BuildContext context) {
+    final subscriptionProvider = Provider.of<SubscriptionProvider>(
+      context,
+      listen: false,
+    );
+    final subscription = subscriptionProvider.currentSubscription!;
+
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Your Subscription'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Duration: ${subscription.durationMonths} month(s)'),
+                const SizedBox(height: 8),
+                Text('Start Date: ${_formatDate(subscription.startDate)}'),
+                const SizedBox(height: 8),
+                Text('End Date: ${_formatDate(subscription.endDate)}'),
+                const SizedBox(height: 8),
+                Text('Amount Paid: ₹${subscription.amount}'),
+                const SizedBox(height: 8),
+                Text('Status: ${subscription.status.toUpperCase()}'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   Widget _buildBody(BuildContext context) {
@@ -193,6 +349,7 @@ class HomeScreen extends StatelessWidget {
         'title': 'Customers',
         'icon': Icons.people_alt_rounded,
         'color': [Colors.blue.shade600, Colors.blue.shade400],
+        'isPremium': false,
         'action': () {
           // Get messId before navigating to CustomerListScreen
           final authProvider = Provider.of<AuthProvider>(
@@ -214,16 +371,28 @@ class HomeScreen extends StatelessWidget {
         'title': 'Dashboard',
         'icon': Icons.analytics_rounded,
         'color': [Colors.green.shade600, Colors.green.shade400],
-        'action':
-            () => Navigator.push(
+        'isPremium': true,
+        'action': () {
+          final subscriptionProvider = Provider.of<SubscriptionProvider>(
+            context,
+            listen: false,
+          );
+
+          if (subscriptionProvider.hasActiveSubscription) {
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => DashboardScreen()),
-            ),
+            );
+          } else {
+            _showPremiumFeatureDialog(context, 'Dashboard');
+          }
+        },
       },
       {
         'title': 'Notifications',
         'icon': Icons.notifications_active_rounded,
         'color': [Colors.orange.shade600, Colors.orange.shade400],
+        'isPremium': false,
         'action':
             () => Navigator.push(
               context,
@@ -236,6 +405,7 @@ class HomeScreen extends StatelessWidget {
         'title': 'Profile',
         'icon': Icons.business_rounded,
         'color': [Colors.purple.shade600, Colors.purple.shade400],
+        'isPremium': false,
         'action': () {
           Navigator.push(
             context,
@@ -249,6 +419,7 @@ class HomeScreen extends StatelessWidget {
         'title': 'About & Help',
         'icon': Icons.help_outline_rounded,
         'color': [Colors.red.shade500, Colors.red.shade300],
+        'isPremium': false,
         'action': () {
           Navigator.push(
             context,
@@ -259,6 +430,10 @@ class HomeScreen extends StatelessWidget {
     ];
 
     final feature = features[index];
+    final subscriptionProvider = Provider.of<SubscriptionProvider>(
+      context,
+      listen: false,
+    );
 
     return Card(
       elevation: 4,
@@ -288,6 +463,36 @@ class HomeScreen extends StatelessWidget {
                   color: Colors.white.withOpacity(0.15),
                 ),
               ),
+              if (feature['isPremium'] as bool)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, color: Colors.white, size: 14),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'PREMIUM',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -321,6 +526,63 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showPremiumFeatureDialog(BuildContext context, String featureName) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.star, color: Colors.amber),
+                SizedBox(width: 8),
+                Text('Premium Feature'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'The $featureName feature is only available with a premium subscription.',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Upgrade now to access all premium features!',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+                child: Text('Later'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => const SubscriptionScreen(
+                            featureTitle: 'Premium Features',
+                          ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Subscribe Now'),
+              ),
+            ],
+          ),
     );
   }
 }

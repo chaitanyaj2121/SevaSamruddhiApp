@@ -11,3 +11,12 @@ class APIConfig {
   // http://192.168.166.11:8080"
   static const String signupBusinessUrl = baseUrl + "/signup/business";
 }
+
+// config.dart
+class Config {
+  // Your backend server URL
+  static const String apiUrl = 'https://your-backend-server.com';
+
+  // Your Razorpay key_id (public key)
+  static const String razorpayKey = 'rzp_test_yourKeyId';
+}
