@@ -181,7 +181,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           );
                         }
                       } catch (e) {
-                        print("Error updating customer: $e");
+                        // print("Error updating customer: $e");
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text("Error: ${e.toString()}"),
