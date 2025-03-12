@@ -17,6 +17,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   TextEditingController _searchController = TextEditingController();
   List<dynamic> filteredCustomers = [];
   int? userFees;
+  String? messId; // Store messId for reuse
+
   void _filterCustomers(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -41,12 +43,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       // Retrieve messId and fees from your AuthProvider
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final messId = authProvider.authData?['user']['uid'];
+      final uid = authProvider.authData?['user']['uid'];
       final fees = authProvider.authData?['user']['fees'];
 
       setState(() {
-        userFees = fees; // Add this line
+        userFees = fees;
+        messId = uid; // Store messId for reuse in other API calls
       });
+
       // Build the URI with both messId and fees as query parameters
       final uri = Uri.parse(APIConfig.dashboardUrl).replace(
         queryParameters: {'messId': messId.toString(), 'fees': fees.toString()},
@@ -104,7 +108,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final url = Uri.parse(APIConfig.deleteCustUrl);
     final bodyData = {
       'customerId': customer['id'],
-    }; // Ensure 'id' matches your customer ID field
+      'messId': messId, // Add messId to request body
+    };
 
     try {
       final response = await http.post(
@@ -145,8 +150,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final url = Uri.parse(APIConfig.renewCustUrl);
     final bodyData = {
-      'customerId':
-          customer['id'], // Make sure 'id' is the correct key for customer ID.
+      'customerId': customer['id'],
+      'messId': messId, // Add messId to request body
     };
 
     try {
@@ -194,7 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     TextEditingController feesPaidController = TextEditingController(
       text: customer['feesPaid'] != null ? customer['feesPaid'].toString() : '',
     );
-    // Sutty is not in the database, so initialize it to "0"
+    // Sutty is not in the database, initialize it to "0"
     TextEditingController suttyController = TextEditingController(text: "0");
 
     showModalBottomSheet(
@@ -297,16 +302,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   setModalState(() {
                                     isUpdating = true;
                                   });
+
+                                  // Create the proper update URL with messId as query parameter
+                                  final url = Uri.parse(
+                                    "${APIConfig.baseUrl}/customers/update/${customer['id']}",
+                                  ).replace(
+                                    queryParameters: {'messId': messId},
+                                  );
+
                                   // Prepare the updated data payload
                                   final updatedData = {
                                     'feesPaid': feesPaidController.text,
                                     'suttya': suttyController.text,
                                   };
-
-                                  // Replace 'customer['id']' with the appropriate ID field
-                                  final url = Uri.parse(
-                                    "${APIConfig.baseUrl}/customers/update/${customer['id']}",
-                                  );
 
                                   try {
                                     final response = await http.post(
@@ -318,17 +326,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     );
 
                                     if (response.statusCode == 200) {
-                                      // Optionally refresh the customer list after a successful update
+                                      // Success message
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Customer updated successfully!",
+                                          ),
+                                        ),
+                                      );
+
+                                      // Refresh the customer list
                                       _fetchCustomerData();
                                       Navigator.pop(
                                         context,
                                       ); // Dismiss the bottom sheet
                                     } else {
-                                      print("Failed to update customer");
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Failed to update customer",
+                                          ),
+                                        ),
+                                      );
+                                      print(
+                                        "Failed to update customer: ${response.body}",
+                                      );
                                     }
                                   } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Error updating customer: $e",
+                                        ),
+                                      ),
+                                    );
                                     print("Error updating customer: $e");
                                   }
+
                                   setModalState(() {
                                     isUpdating = false;
                                   });

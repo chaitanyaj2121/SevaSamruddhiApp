@@ -61,10 +61,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+
+    // Retrieve messId from AuthProvider
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messId = authProvider.authData?['user']['uid'];
+
     final url = Uri.parse(APIConfig.renewCustUrl);
     final bodyData = {
       'customerId': notification['id'],
-    }; // Ensure 'id' exists in your notification object
+      'messId': messId.toString(),
+    };
+
     try {
       final response = await http.post(
         url,

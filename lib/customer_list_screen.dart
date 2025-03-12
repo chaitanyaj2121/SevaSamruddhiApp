@@ -145,23 +145,49 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                       };
 
                       try {
+                        // Create the URL with query parameters for messId
+                        final updateUri = Uri.parse(
+                          "${APIConfig.baseUrl}/customers/update/${customer['id']}",
+                        ).replace(queryParameters: {'messId': widget.messId});
+
                         final response = await http.post(
-                          Uri.parse(
-                            "${APIConfig.baseUrl}/customers/update/${customer['id']}",
-                          ),
+                          updateUri,
                           headers: {"Content-Type": "application/json"},
                           body: jsonEncode(updatedData),
                         );
+
                         if (response.statusCode == 200) {
-                          setState(() {
-                            // Updating local list to reflect changes
-                            customer['feesPaid'] = feesPaidController.text;
-                            customer['suttya'] = suttyController.text;
-                          });
+                          // Fetch updated customer data to refresh the list
+                          await fetchCustomers();
                           Navigator.pop(context);
+
+                          // Show success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Customer updated successfully"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          // Show error message
+                          final errorData = jsonDecode(response.body);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                errorData['message'] ?? "Update failed",
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
                         }
                       } catch (e) {
                         print("Error updating customer: $e");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Error: ${e.toString()}"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
                       setModalState(() => isUpdating = false);
                     }),
