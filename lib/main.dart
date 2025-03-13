@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
           );
         }
         return MaterialApp(
-          title: 'SmartServe',
+          title: 'SevaSamruddhi',
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
             useMaterial3: true,

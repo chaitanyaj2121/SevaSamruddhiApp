@@ -56,7 +56,7 @@ class RazorpayService {
       var options = {
         'key': Config.razorpayKey,
         'amount': amount * 100, // Razorpay expects amount in paise
-        'name': 'SmartServe',
+        'name': 'SevaSamruddhi',
         'order_id': orderId,
         'description': '$durationMonths Month(s) Subscription',
         'prefill': {'contact': phone, 'email': email, 'name': name},

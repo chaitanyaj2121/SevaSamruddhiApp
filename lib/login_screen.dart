@@ -131,16 +131,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: const Icon(
-                                Icons.business_center_rounded,
+                                Icons.verified_user,
                                 size: 50,
                                 color: Color(0xFF3E92CC),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             Text(
-                              "SmartServe",
+                              "SevaSamruddi",
                               style: GoogleFonts.poppins(
-                                fontSize: 32,
+                                fontSize: 25,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                                 letterSpacing: 1.0,

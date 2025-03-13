@@ -17,7 +17,7 @@ class AboutHelpScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'About SmartServ',
+          'About SevaSamruddhi',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         flexibleSpace: Container(
@@ -95,7 +95,7 @@ class AboutHelpScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Welcome to SmartServ Center, your ultimate solution for managing monthly services with ease. Track customer subscriptions, update payments, and streamline operations all in one place.',
+                'Welcome to SevaSamruddhi Center, your ultimate solution for managing monthly services with ease. Track customer subscriptions, update payments, and streamline operations all in one place.',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.white.withOpacity(0.9),
@@ -259,9 +259,9 @@ class AboutHelpScreen extends StatelessWidget {
                 Icon(Icons.star, color: Colors.deepPurple.shade600, size: 24),
                 const SizedBox(width: 10),
                 const Text(
-                  'Why SmartServ Center?',
+                  'Why SevaSamruddhi Center?',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -308,7 +308,7 @@ class AboutHelpScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Join hundreds of businesses using SmartServ Center to streamline operations and enhance efficiency.',
+                    'Join hundreds of businesses using SevaSamruddhi Center to streamline operations and enhance efficiency.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, color: Colors.black87),
                   ),

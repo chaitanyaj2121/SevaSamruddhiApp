@@ -156,7 +156,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             child: Column(
                               children: [
                                 Text(
-                                  "SmartServe",
+                                  "SevaSamruddhi",
                                   style: GoogleFonts.poppins(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w700,

@@ -46,7 +46,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             const Flexible(
               child: Text(
-                'SmartServe',
+                'SevaSamruddhi',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
