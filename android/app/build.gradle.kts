@@ -17,12 +17,12 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.example.setupfirebase"
+    namespace = "com.diems.sevasamruddhi"
     
     compileSdk = 34 // Set a valid compile SDK version
     
     defaultConfig {
-        applicationId = "com.example.setupfirebase"
+        applicationId = "com.diems.sevasamruddhi"
         minSdk = 21 // Set a valid minSdk version
         targetSdk = 34 // Set a valid targetSdk version
         versionCode = 1
@@ -41,8 +41,8 @@ android {
     
     buildTypes {
         release {
-            isMinifyEnabled = true  // ✅ Enables code shrinking (R8)
-            isShrinkResources = true // ✅ Enables resource shrinking
+            isMinifyEnabled = false  // ✅ Enables code shrinking (R8)
+            isShrinkResources = false // ✅ Enables resource shrinking
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
