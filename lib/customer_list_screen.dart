@@ -28,7 +28,22 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     fetchCustomers();
   }
 
-  // New method to fetch customers directly in this screen
+  Future<bool> _checkInternetConnectivity() async {
+    try {
+      final response = await http
+          .get(Uri.parse('https://www.google.com'))
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () {
+              throw Exception('Timeout');
+            },
+          );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<void> fetchCustomers() async {
     setState(() {
       isLoading = true;
@@ -36,11 +51,29 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     });
 
     try {
+      // Check for internet connectivity first
+      bool isConnected = await _checkInternetConnectivity();
+      if (!isConnected) {
+        setState(() {
+          errorMessage =
+              'No internet connection. Please check your network settings and try again.';
+          isLoading = false;
+        });
+        return;
+      }
+
       final uri = Uri.parse(
         APIConfig.customersUrl,
       ).replace(queryParameters: {'messId': widget.messId});
 
-      final response = await http.get(uri);
+      final response = await http
+          .get(uri)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw Exception('Connection timeout. Please try again.');
+            },
+          );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
@@ -139,6 +172,22 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     const SizedBox(height: 20),
                     _buildUpdateButton(isUpdating, () async {
                       setModalState(() => isUpdating = true);
+
+                      // Check internet connectivity first
+                      bool isConnected = await _checkInternetConnectivity();
+                      if (!isConnected) {
+                        setModalState(() => isUpdating = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "No internet connection. Please check your network and try again.",
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
                       final updatedData = {
                         'feesPaid': feesPaidController.text,
                         'suttya': suttyController.text,
@@ -150,11 +199,20 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           "${APIConfig.baseUrl}/customers/update/${customer['id']}",
                         ).replace(queryParameters: {'messId': widget.messId});
 
-                        final response = await http.post(
-                          updateUri,
-                          headers: {"Content-Type": "application/json"},
-                          body: jsonEncode(updatedData),
-                        );
+                        final response = await http
+                            .post(
+                              updateUri,
+                              headers: {"Content-Type": "application/json"},
+                              body: jsonEncode(updatedData),
+                            )
+                            .timeout(
+                              const Duration(seconds: 10),
+                              onTimeout: () {
+                                throw Exception(
+                                  'Connection timeout. Please try again.',
+                                );
+                              },
+                            );
 
                         if (response.statusCode == 200) {
                           // Fetch updated customer data to refresh the list
@@ -181,7 +239,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           );
                         }
                       } catch (e) {
-                        // print("Error updating customer: $e");
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text("Error: ${e.toString()}"),
@@ -389,13 +446,18 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
-  // New method to display error state
   Widget _buildErrorState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 80, color: Colors.red),
+          Icon(
+            errorMessage?.contains('internet') ?? false
+                ? Icons.signal_wifi_off
+                : Icons.error_outline,
+            size: 80,
+            color: Colors.red,
+          ),
           const SizedBox(height: 16),
           Text(
             errorMessage ?? "An error occurred",

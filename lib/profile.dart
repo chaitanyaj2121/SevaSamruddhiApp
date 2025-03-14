@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:setupfirebase/config.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'auth_provider.dart';
 import 'update_profile.dart';
 
@@ -18,11 +19,35 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   bool _isLoading = true;
   Map<String, dynamic>? _businessData;
   String? _errorMessage;
+  bool _hasInternetConnection = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchBusinessProfile();
+    _checkInternetAndFetchData();
+  }
+
+  Future<bool> _checkInternetConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
+  Future<void> _checkInternetAndFetchData() async {
+    bool hasInternet = await _checkInternetConnection();
+
+    setState(() {
+      _hasInternetConnection = hasInternet;
+    });
+
+    if (hasInternet) {
+      _fetchBusinessProfile();
+    } else {
+      setState(() {
+        _isLoading = false;
+        _errorMessage =
+            'No internet connection. Please check your connection and try again.';
+      });
+    }
   }
 
   Future<void> _fetchBusinessProfile() async {
@@ -46,10 +71,17 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
 
       // Replace with your actual API base URL
       final baseUrl = APIConfig.baseUrl;
-      final response = await http.get(
-        Uri.parse('$baseUrl/profile/business?uid=$uid'),
-        headers: {'Content-Type': 'application/json'},
-      );
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/profile/business?uid=$uid'),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw Exception('Connection timeout. Please try again.');
+            },
+          );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -67,7 +99,14 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Network error: ${e.toString()}';
+        _errorMessage =
+            e.toString().contains('SocketException') ||
+                    e.toString().contains('Connection timeout')
+                ? 'No internet connection. Please check your connection and try again.'
+                : 'Network error: ${e.toString()}';
+        _hasInternetConnection =
+            !e.toString().contains('SocketException') &&
+            !e.toString().contains('Connection timeout');
       });
     }
   }
@@ -106,6 +145,18 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () async {
+                if (!_hasInternetConnection) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'No internet connection. Cannot edit profile.',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -117,34 +168,55 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                 );
 
                 if (result == true) {
-                  _fetchBusinessProfile(); // Refresh data after successful update
+                  _checkInternetAndFetchData(); // Refresh data after successful update
                 }
               },
             ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _checkInternetAndFetchData,
+          ),
         ],
       ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _errorMessage != null
-              ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _fetchBusinessProfile,
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              )
+              ? _buildErrorView()
               : _buildProfileContent(),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _hasInternetConnection
+                ? Icons.error_outline
+                : Icons.signal_wifi_off,
+            size: 70,
+            color: Colors.red,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _errorMessage!,
+            style: const TextStyle(color: Colors.red, fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _checkInternetAndFetchData,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Try Again'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

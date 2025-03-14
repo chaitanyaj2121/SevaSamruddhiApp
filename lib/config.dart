@@ -1,7 +1,7 @@
 class APIConfig {
-  static const String baseUrl =
-      'https://backendsmartserveapp-production.up.railway.app';
+  static const String baseUrl = 'https://www.sevasamruddhi.in';
   // Change to 'https://backend-smartserveapp.onrender.com' if testing locally.
+  // https://backendsmartserveapp-production.up.railway.app
   static const String customersUrl = baseUrl + "/customers";
   static const String addCustomerUrl = baseUrl + "/addCustomer";
   static const String loginUrl = baseUrl + "/login";
