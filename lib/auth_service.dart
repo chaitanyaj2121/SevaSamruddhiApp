@@ -8,7 +8,7 @@ class AuthService {
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       // Log the request data
-      print("Attempting login with Email: $email, Password: $password");
+      print("Attempting login with Email: $email");
 
       final response = await http.post(
         Uri.parse(_url),

@@ -391,7 +391,7 @@ class AboutHelpScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildDeveloperInfoItem(
-              icon: Icons.person,
+              icon: Icon(Icons.person, color: Colors.deepPurple.shade400, size: 20),
               title: 'Developed by',
               info: 'Chaitanya Jawanjal',
             ),
@@ -399,7 +399,7 @@ class AboutHelpScreen extends StatelessWidget {
             InkWell(
               onTap: () => _launchUrl('mailto:chaitanyajawanjal21@gmail.com'),
               child: _buildDeveloperInfoItem(
-                icon: Icons.email,
+                icon: Icon(Icons.email, color: Colors.deepPurple.shade400, size: 20),
                 title: 'Contact',
                 info: 'Chaitanyajawanjal21@gmail.com',
                 isLink: true,
@@ -412,7 +412,11 @@ class AboutHelpScreen extends StatelessWidget {
                     'https://www.linkedin.com/in/chaitanya-jawanjal-b01785270/',
                   ),
               child: _buildDeveloperInfoItem(
-                icon: FontAwesomeIcons.linkedin, // Pass IconData directly
+                icon: FaIcon(
+                  FontAwesomeIcons.linkedin,
+                  color: Colors.deepPurple.shade400,
+                  size: 20,
+                ),
                 title: 'LinkedIn',
                 info: 'Chaitanya Jawanjal',
                 isLink: true,
@@ -423,7 +427,11 @@ class AboutHelpScreen extends StatelessWidget {
               onTap:
                   () => _launchUrl('https://www.instagram.com/chaitanyadjp/'),
               child: _buildDeveloperInfoItem(
-                icon: Icons.photo_camera,
+                icon: Icon(
+                  Icons.photo_camera,
+                  color: Colors.deepPurple.shade400,
+                  size: 20,
+                ),
                 title: 'Instagram',
                 info: '@chaitanyadjp',
                 isLink: true,
@@ -436,7 +444,7 @@ class AboutHelpScreen extends StatelessWidget {
   }
 
   Widget _buildDeveloperInfoItem({
-    required IconData icon,
+    required Widget icon,
     required String title,
     required String info,
     bool isLink = false,
@@ -450,7 +458,7 @@ class AboutHelpScreen extends StatelessWidget {
             color: Colors.deepPurple.shade50,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Colors.deepPurple.shade400, size: 20),
+          child: icon,
         ),
         const SizedBox(width: 12),
         Expanded(

@@ -16,6 +16,13 @@ val keystoreProperties = Properties().apply {
     }
 }
 
+fun signingProperty(name: String): String? =
+    keystoreProperties.getProperty(name)?.takeIf { it.isNotBlank() }
+
+val hasReleaseSigningConfig =
+    listOf("keyAlias", "keyPassword", "storeFile", "storePassword")
+        .all { signingProperty(it) != null }
+
 android {
     namespace = "com.diems.sevasamruddhi"
     
@@ -23,7 +30,7 @@ android {
     
     defaultConfig {
         applicationId = "com.diems.sevasamruddhi"
-        minSdk = 21 // Set a valid minSdk version
+        minSdk = flutter.minSdkVersion // Set a valid minSdk version
         targetSdk = 34 // Set a valid targetSdk version
         versionCode = 1
         versionName = "1.0"
@@ -31,11 +38,13 @@ android {
 
     // Configure signing using the properties loaded above
     signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
+        if (hasReleaseSigningConfig) {
+            create("release") {
+                keyAlias = signingProperty("keyAlias")
+                keyPassword = signingProperty("keyPassword")
+                storeFile = file(signingProperty("storeFile")!!)
+                storePassword = signingProperty("storePassword")
+            }
         }
     }
     
@@ -48,8 +57,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Use the release signing configuration
-            signingConfig = signingConfigs.getByName("release")
+            // Use the release signing configuration when android/key.properties is present.
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
 
         debug {
