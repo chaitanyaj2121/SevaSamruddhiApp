@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'customer_list_screen.dart';
 import 'AddCustomerScreen.dart';
 import 'dashboard_screen.dart';
 import 'profile.dart';
 import 'notifications_screen.dart';
-import 'config.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'login_screen.dart';
 import 'about_help_screen.dart';
+import 'app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   final String uid;
@@ -20,6 +18,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: _buildAppBar(context),
       body: _buildBody(context),
       floatingActionButton: _buildFloatingActionButton(context),
@@ -28,107 +27,91 @@ class HomeScreen extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      toolbarHeight: 80,
+      toolbarHeight: 76,
       automaticallyImplyLeading: false,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.deepPurple.shade700, Colors.purple.shade600],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      titleSpacing: 20,
+      title: Row(
+        children: [
+          Container(
+            height: 44,
+            width: 44,
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.restaurant_menu, color: AppTheme.primary),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('SevaSamruddhi'),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: IconButton.filledTonal(
+            tooltip: 'Logout',
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              final authProvider = Provider.of<AuthProvider>(
+                context,
+                listen: false,
+              );
+              await authProvider.logout();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+            },
           ),
         ),
-      ),
-      title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Flexible(
-              child: Text(
-                'SevaSamruddhi',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-            InkWell(
-              onTap: () async {
-                final authProvider = Provider.of<AuthProvider>(
-                  context,
-                  listen: false,
-                );
-                await authProvider.logout();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
-              },
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.white, size: 18),
-                    SizedBox(width: 6),
-                    Text(
-                      'Logout',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
   Widget _buildBody(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.white, Color(0xFFF5F5F5)],
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildWelcomeHeader(),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const BouncingScrollPhysics(),
-                itemCount: 5,
-                separatorBuilder:
-                    (context, index) => const SizedBox(height: 15),
-                itemBuilder: (context, index) {
-                  return _buildFeatureCard(context, index);
-                },
-              ),
+    return SafeArea(
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildWelcomeHeader(),
+                const SizedBox(height: 20),
+                Text(
+                  'Quick Actions',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 5,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.12,
+                  ),
+                  itemBuilder: (context, index) {
+                    return _buildFeatureCard(context, index);
+                  },
+                ),
+              ]),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -141,46 +124,41 @@ class HomeScreen extends StatelessWidget {
           MaterialPageRoute(builder: (context) => AddCustomerScreen()),
         );
       },
-      icon: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 20),
-      label: const Text(
-        'Add Customer',
-        style: TextStyle(fontSize: 14, color: Colors.white),
-      ),
-      backgroundColor: Colors.purple,
-      elevation: 6,
+      icon: const Icon(Icons.person_add_alt_1),
+      label: const Text('Add Customer'),
+      backgroundColor: AppTheme.primary,
+      foregroundColor: Colors.white,
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
   }
 
   Widget _buildWelcomeHeader() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppTheme.primaryDark,
+        borderRadius: BorderRadius.circular(18),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Welcome Back!',
+            'Welcome back',
             style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
-            'Manage restaurant operations',
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            'Manage customers, fees, renewals, and business details from one place.',
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.4,
+              color: Color(0xFFDDEBE7),
+            ),
           ),
         ],
       ),
@@ -191,17 +169,16 @@ class HomeScreen extends StatelessWidget {
     final features = [
       {
         'title': 'Customers',
+        'subtitle': 'View and update members',
         'icon': Icons.people_alt_rounded,
-        'color': [Colors.blue.shade600, Colors.blue.shade400],
+        'color': const Color(0xFF176B5D),
         'action': () {
-          // Get messId before navigating to CustomerListScreen
           final authProvider = Provider.of<AuthProvider>(
             context,
             listen: false,
           );
           final messId = authProvider.authData?['user']['uid'];
 
-          // Navigate to CustomerListScreen with messId
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -212,8 +189,9 @@ class HomeScreen extends StatelessWidget {
       },
       {
         'title': 'Dashboard',
+        'subtitle': 'Track payments',
         'icon': Icons.analytics_rounded,
-        'color': [Colors.green.shade600, Colors.green.shade400],
+        'color': const Color(0xFF3461A4),
         'action':
             () => Navigator.push(
               context,
@@ -222,8 +200,9 @@ class HomeScreen extends StatelessWidget {
       },
       {
         'title': 'Notifications',
+        'subtitle': 'Recent updates',
         'icon': Icons.notifications_active_rounded,
-        'color': [Colors.orange.shade600, Colors.orange.shade400],
+        'color': const Color(0xFFC46A2B),
         'action':
             () => Navigator.push(
               context,
@@ -234,8 +213,9 @@ class HomeScreen extends StatelessWidget {
       },
       {
         'title': 'Profile',
+        'subtitle': 'Business info',
         'icon': Icons.business_rounded,
-        'color': [Colors.purple.shade600, Colors.purple.shade400],
+        'color': const Color(0xFF7251A2),
         'action': () {
           Navigator.push(
             context,
@@ -246,9 +226,10 @@ class HomeScreen extends StatelessWidget {
         },
       },
       {
-        'title': 'About & Help',
+        'title': 'Help',
+        'subtitle': 'Support and about',
         'icon': Icons.help_outline_rounded,
-        'color': [Colors.red.shade500, Colors.red.shade300],
+        'color': const Color(0xFFB94E48),
         'action': () {
           Navigator.push(
             context,
@@ -259,62 +240,45 @@ class HomeScreen extends StatelessWidget {
     ];
 
     final feature = features[index];
+    final color = feature['color'] as Color;
 
     return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: feature['action'] as void Function()?,
-        child: Container(
-          height: 100,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: feature['color'] as List<Color>,
-            ),
-          ),
-          child: Stack(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Positioned(
-                right: -20,
-                top: -20,
-                child: Icon(
-                  feature['icon'] as IconData,
-                  size: 100,
-                  color: Colors.white.withOpacity(0.15),
+              Container(
+                height: 42,
+                width: 42,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(feature['icon'] as IconData, color: color),
+              ),
+              const Spacer(),
+              Text(
+                feature['title'] as String,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      feature['icon'] as IconData,
-                      size: 28,
-                      color: Colors.white,
-                    ),
-                    const Spacer(),
-                    Text(
-                      feature['title'] as String,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 4,
-                            color: Colors.black26,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 4),
+              Text(
+                feature['subtitle'] as String,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.mutedText,
+                  height: 1.3,
                 ),
               ),
             ],

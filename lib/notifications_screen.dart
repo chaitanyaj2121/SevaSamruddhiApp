@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:setupfirebase/config.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart';
+import 'app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
@@ -101,25 +102,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text(
-          "Notifications",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            shadows: [Shadow(blurRadius: 2, offset: Offset(1, 1))],
-          ),
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.deepOrange, Colors.orangeAccent],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        title: const Text('Notifications'),
       ),
       body:
           isLoading
@@ -136,13 +121,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.deepOrange),
+            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
           ),
           const SizedBox(height: 20),
           Text(
             "Fetching Notifications...",
             style: TextStyle(
-              color: Colors.grey[600],
+              color: AppTheme.mutedText,
               fontSize: 16,
               fontStyle: FontStyle.italic,
             ),
@@ -160,13 +145,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Icon(
             Icons.notifications_off_outlined,
             size: 100,
-            color: Colors.grey[400],
+            color: AppTheme.mutedText,
           ),
           const SizedBox(height: 20),
           Text(
             "No Notifications Today!",
             style: TextStyle(
-              color: Colors.grey[600],
+              color: AppTheme.mutedText,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -174,7 +159,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           const SizedBox(height: 10),
           Text(
             "All caught up with your renewals",
-            style: TextStyle(color: Colors.grey[500], fontSize: 14),
+            style: const TextStyle(color: AppTheme.mutedText, fontSize: 14),
           ),
         ],
       ),
@@ -183,7 +168,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Widget _buildNotificationList() {
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       itemCount: notifications.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
@@ -208,19 +193,8 @@ class _NotificationCard extends StatelessWidget {
     final formattedDate = _formatDate(notification);
     final feesPaid = _calculateFeesPaid(notification);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -235,9 +209,9 @@ class _NotificationCard extends StatelessWidget {
                   Text(
                     notification['name'] ?? 'No Name',
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepOrange,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -256,32 +230,17 @@ class _NotificationCard extends StatelessWidget {
   }
 
   Widget _buildCustomerAvatar() {
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.orangeAccent, width: 2),
-      ),
-      child: ClipOval(
-        child:
-            notification['customerImage']?['url'] != null
-                ? Image.network(
-                  notification['customerImage']['url'],
-                  fit: BoxFit.cover,
-                  loadingBuilder:
-                      (context, child, loadingProgress) =>
-                          loadingProgress == null
-                              ? child
-                              : const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                  errorBuilder:
-                      (context, error, stackTrace) =>
-                          const Icon(Icons.person_outline),
-                )
-                : const Icon(Icons.person_outline, size: 30),
-      ),
+    return CircleAvatar(
+      radius: 26,
+      backgroundImage:
+          notification['customerImage']?['url'] != null
+              ? NetworkImage(notification['customerImage']['url'])
+              : null,
+      backgroundColor: AppTheme.primary.withOpacity(0.12),
+      child:
+          notification['customerImage']?['url'] == null
+              ? const Icon(Icons.person, color: AppTheme.primary, size: 26)
+              : null,
     );
   }
 
@@ -290,9 +249,12 @@ class _NotificationCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
+          Icon(icon, size: 16, color: AppTheme.mutedText),
           const SizedBox(width: 8),
-          Text(text, style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 13, color: AppTheme.mutedText),
+          ),
         ],
       ),
     );
@@ -306,17 +268,18 @@ class _NotificationCard extends StatelessWidget {
           spacing: 8,
           runSpacing: 4,
           children: [
-            _buildFeeChip(
+            _buildInfoChip(
+              Icons.payments_outlined,
               "Paid: ₹${NumberFormat().format(paid)}",
-              Colors.green,
+              AppTheme.primary,
             ),
           ],
         ),
         const SizedBox(height: 8),
         LinearProgressIndicator(
           value: paid / 2300,
-          backgroundColor: Colors.grey[200],
-          valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
+          backgroundColor: AppTheme.border,
+          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
           minHeight: 8,
           borderRadius: BorderRadius.circular(4),
         ),
@@ -324,18 +287,28 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFeeChip(String text, Color color) {
-    return Chip(
-      // Changed vertical padding from -4 to 2 to avoid text overlap
-      labelPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      label: Text(
-        text,
-        style: const TextStyle(fontSize: 10, color: Colors.white),
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(99),
       ),
-      backgroundColor: color.withOpacity(0.8),
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      padding: EdgeInsets.zero,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -343,28 +316,18 @@ class _NotificationCard extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
+        IconButton.filledTonal(
           icon: const Icon(Icons.autorenew, size: 20),
-          color: Colors.deepOrange,
           onPressed: onRenew,
-          padding: const EdgeInsets.all(6),
-          constraints: const BoxConstraints(),
           tooltip: 'Renew Subscription',
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.deepOrange.withOpacity(0.1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
         ),
+        const SizedBox(height: 4),
         const Text(
           'Renew',
           style: TextStyle(
-            color: Colors.deepOrange,
+            color: AppTheme.primary,
             fontSize: 10,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],

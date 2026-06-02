@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'config.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart';
+import 'app_theme.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -386,39 +387,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Dashboard',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-        ),
-        backgroundColor: Colors.deepPurple,
-        centerTitle: true,
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(title: const Text('Dashboard')),
       body:
           _isLoading
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : RefreshIndicator(
                 onRefresh: _fetchCustomerData,
                 child: Column(
                   children: [
-                    // Search Bar
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
                       child: TextField(
                         controller: _searchController,
-                        decoration: InputDecoration(
-                          labelText: 'Search by Name',
+                        decoration: const InputDecoration(
+                          hintText: 'Search by name...',
                           prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
                         ),
-                        onChanged:
-                            _filterCustomers, // Calls the function on typing
+                        onChanged: _filterCustomers,
                       ),
                     ),
-
-                    // Customers List
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                      child: Row(
+                        children: [
+                          _buildDashboardChip(
+                            Icons.people_alt_outlined,
+                            '${filteredCustomers.length} customers',
+                            AppTheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildDashboardChip(
+                            Icons.payments_outlined,
+                            'Fee: Rs ${userFees ?? 0}',
+                            const Color(0xFF3461A4),
+                          ),
+                        ],
+                      ),
+                    ),
                     Expanded(
                       child:
                           filteredCustomers.isEmpty
@@ -443,19 +449,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               )
                               : ListView.builder(
-                                padding: EdgeInsets.all(16),
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  0,
+                                  20,
+                                  24,
+                                ),
                                 itemCount: filteredCustomers.length,
                                 itemBuilder: (context, index) {
                                   final customer = filteredCustomers[index];
                                   return Card(
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    elevation: 4,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
+                                    margin: const EdgeInsets.only(bottom: 12),
                                     child: Padding(
                                       padding: const EdgeInsets.all(16),
                                       child: Column(
@@ -474,15 +478,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                           customer['customerImage']['url'],
                                                         )
                                                         : null,
-                                                backgroundColor:
-                                                    Colors.grey[300],
+                                                backgroundColor: AppTheme
+                                                    .primary
+                                                    .withOpacity(0.12),
                                                 radius: 30,
                                                 child:
                                                     customer['customerImage']?['url'] ==
                                                             null
                                                         ? const Icon(
                                                           Icons.person,
-                                                          color: Colors.white,
+                                                          color:
+                                                              AppTheme.primary,
                                                           size: 30,
                                                         )
                                                         : null,
@@ -497,28 +503,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       customer['name'] ??
                                                           'Unknown',
                                                       style: const TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                        FontWeight.w800,
                                                       ),
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                     ),
                                                     const SizedBox(height: 8),
                                                     Text(
-                                                      "Fees Paid: ₹${customer['feesPaid'] ?? 0}",
+                                                      "Fees Paid: Rs ${customer['feesPaid'] ?? 0}",
                                                       style: TextStyle(
                                                         fontSize: 14,
                                                         fontWeight:
                                                             FontWeight.w500,
-                                                        color: Colors.green,
+                                                        color: AppTheme.primary,
                                                       ),
                                                     ),
                                                     const SizedBox(height: 8),
                                                     Text(
-                                                      "Fees Remaining: ₹${(userFees ?? 0) - (customer['feesPaid'] ?? 0)}",
+                                                      "Fees Remaining: Rs ${(userFees ?? 0) - (customer['feesPaid'] ?? 0)}",
                                                       style: TextStyle(
-                                                        fontSize: 14,
+                                                        fontSize: 12,
                                                         fontWeight:
                                                             FontWeight.w500,
                                                       ),
@@ -528,13 +534,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       "Start Date: ${formatTimestamp(customer['start_date'])}",
                                                       style: TextStyle(
                                                         fontSize: 14,
-                                                        color: Colors.blueGrey,
+                                                        color:
+                                                            AppTheme.mutedText,
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                               ),
                                               PopupMenuButton<String>(
+                                                icon: const Icon(
+                                                  Icons.more_vert,
+                                                  color: AppTheme.mutedText,
+                                                ),
                                                 onSelected:
                                                     (value) =>
                                                         _onMenuItemSelected(
@@ -569,6 +580,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
+    );
+  }
+
+  Widget _buildDashboardChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

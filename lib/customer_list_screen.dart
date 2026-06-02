@@ -1,13 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
+import 'app_theme.dart';
 import 'config.dart';
 
 class CustomerListScreen extends StatefulWidget {
   final String? messId;
 
-  // Changed constructor to accept messId instead of customers
   const CustomerListScreen({Key? key, required this.messId}) : super(key: key);
 
   @override
@@ -15,7 +17,7 @@ class CustomerListScreen extends StatefulWidget {
 }
 
 class _CustomerListScreenState extends State<CustomerListScreen> {
-  TextEditingController searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
   List<dynamic> customers = [];
   List<dynamic> filteredCustomers = [];
   bool isLoading = true;
@@ -24,7 +26,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch customers when the screen initializes
     fetchCustomers();
   }
 
@@ -32,12 +33,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     try {
       final response = await http
           .get(Uri.parse('https://www.google.com'))
-          .timeout(
-            const Duration(seconds: 3),
-            onTimeout: () {
-              throw Exception('Timeout');
-            },
-          );
+          .timeout(const Duration(seconds: 3));
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -51,8 +47,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     });
 
     try {
-      // Check for internet connectivity first
-      bool isConnected = await _checkInternetConnectivity();
+      final isConnected = await _checkInternetConnectivity();
       if (!isConnected) {
         setState(() {
           errorMessage =
@@ -110,77 +105,86 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
         filteredCustomers = customers;
       } else {
         filteredCustomers =
-            customers
-                .where(
-                  (customer) =>
-                      customer['name'] != null &&
-                      customer['name'].toLowerCase().contains(
-                        query.toLowerCase(),
-                      ),
-                )
-                .toList();
+            customers.where((customer) {
+              final name = customer['name']?.toString().toLowerCase() ?? '';
+              return name.contains(query.toLowerCase());
+            }).toList();
       }
     });
   }
 
   void _showUpdateCustomerBottomSheet(BuildContext context, dynamic customer) {
-    TextEditingController nameController = TextEditingController(
-      text: customer['name'] ?? '',
-    );
-    TextEditingController mobileController = TextEditingController(
+    final nameController = TextEditingController(text: customer['name'] ?? '');
+    final mobileController = TextEditingController(
       text: customer['mobile'] ?? '',
     );
-    TextEditingController startDateController = TextEditingController(
+    final startDateController = TextEditingController(
       text: formatStartDate(customer['start_date']),
     );
-    TextEditingController feesPaidController = TextEditingController(
+    final feesPaidController = TextEditingController(
       text: customer['feesPaid']?.toString() ?? '',
     );
-    TextEditingController suttyController = TextEditingController(text: "0");
+    final suttyController = TextEditingController(text: '0');
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         bool isUpdating = false;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
               padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
               ),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Center(
+                      child: Container(
+                        height: 4,
+                        width: 44,
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: AppTheme.border,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                    ),
                     Text(
-                      "Manage Customer: ${customer['name']}",
+                      "Manage ${customer['name'] ?? 'Customer'}",
                       style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildReadOnlyField("Name", nameController),
-                    _buildReadOnlyField("Mobile", mobileController),
-                    _buildReadOnlyField("Start Date", startDateController),
-                    _buildEditableField("Fees Paid", feesPaidController),
-                    _buildEditableField("Sutty", suttyController),
-                    const SizedBox(height: 20),
+                    _buildReadOnlyField('Name', nameController),
+                    _buildReadOnlyField('Mobile', mobileController),
+                    _buildReadOnlyField('Start Date', startDateController),
+                    _buildEditableField('Fees Paid', feesPaidController),
+                    _buildEditableField('Sutty', suttyController),
+                    const SizedBox(height: 8),
                     _buildUpdateButton(isUpdating, () async {
                       setModalState(() => isUpdating = true);
 
-                      // Check internet connectivity first
-                      bool isConnected = await _checkInternetConnectivity();
+                      final isConnected = await _checkInternetConnectivity();
                       if (!isConnected) {
                         setModalState(() => isUpdating = false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              "No internet connection. Please check your network and try again.",
+                              'No internet connection. Please check your network and try again.',
                             ),
                             backgroundColor: Colors.red,
                           ),
@@ -194,45 +198,33 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                       };
 
                       try {
-                        // Create the URL with query parameters for messId
                         final updateUri = Uri.parse(
-                          "${APIConfig.baseUrl}/customers/update/${customer['id']}",
+                          '${APIConfig.baseUrl}/customers/update/${customer['id']}',
                         ).replace(queryParameters: {'messId': widget.messId});
 
                         final response = await http
                             .post(
                               updateUri,
-                              headers: {"Content-Type": "application/json"},
+                              headers: {'Content-Type': 'application/json'},
                               body: jsonEncode(updatedData),
                             )
-                            .timeout(
-                              const Duration(seconds: 10),
-                              onTimeout: () {
-                                throw Exception(
-                                  'Connection timeout. Please try again.',
-                                );
-                              },
-                            );
+                            .timeout(const Duration(seconds: 10));
 
                         if (response.statusCode == 200) {
-                          // Fetch updated customer data to refresh the list
                           await fetchCustomers();
                           Navigator.pop(context);
-
-                          // Show success message
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Customer updated successfully"),
+                              content: Text('Customer updated successfully'),
                               backgroundColor: Colors.green,
                             ),
                           );
                         } else {
-                          // Show error message
                           final errorData = jsonDecode(response.body);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                errorData['message'] ?? "Update failed",
+                                errorData['message'] ?? 'Update failed',
                               ),
                               backgroundColor: Colors.red,
                             ),
@@ -241,11 +233,12 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text("Error: ${e.toString()}"),
+                            content: Text('Error: ${e.toString()}'),
                             backgroundColor: Colors.red,
                           ),
                         );
                       }
+
                       setModalState(() => isUpdating = false);
                     }),
                   ],
@@ -259,52 +252,61 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   }
 
   Widget _buildReadOnlyField(String label, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        TextField(
-          controller: controller,
-          readOnly: true,
-          decoration: const InputDecoration(border: OutlineInputBorder()),
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
+    return _buildSheetField(label, controller, readOnly: true);
   }
 
   Widget _buildEditableField(String label, TextEditingController controller) {
+    return _buildSheetField(
+      label,
+      controller,
+      keyboardType: TextInputType.number,
+    );
+  }
+
+  Widget _buildSheetField(
+    String label,
+    TextEditingController controller, {
+    bool readOnly = false,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
         TextField(
           controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(border: OutlineInputBorder()),
+          readOnly: readOnly,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            fillColor: readOnly ? const Color(0xFFF8FAF8) : AppTheme.surface,
+          ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
       ],
     );
   }
 
   Widget _buildUpdateButton(bool isUpdating, VoidCallback onPressed) {
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurple,
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-      ),
       onPressed: isUpdating ? null : onPressed,
       child:
           isUpdating
-              ? const CircularProgressIndicator(color: Colors.white)
-              : const Text("Update", style: TextStyle(color: Colors.white)),
+              ? const SizedBox(
+                height: 22,
+                width: 22,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+              : const Text('Update Customer'),
     );
   }
 
   String formatStartDate(dynamic timestamp) {
     if (timestamp != null && timestamp['_seconds'] != null) {
-      DateTime date = DateTime.fromMillisecondsSinceEpoch(
+      final date = DateTime.fromMillisecondsSinceEpoch(
         timestamp['_seconds'] * 1000,
       );
       return DateFormat('dd MMM yyyy').format(date);
@@ -315,25 +317,12 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text(
-          'Customers List',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.deepPurple, Colors.purpleAccent],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        elevation: 6,
+        title: const Text('Customers'),
         actions: [
-          // Added refresh button
           IconButton(
+            tooltip: 'Refresh',
             icon: const Icon(Icons.refresh),
             onPressed: fetchCustomers,
           ),
@@ -347,15 +336,25 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
               : Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
                     child: TextField(
                       controller: searchController,
                       onChanged: _filterCustomers,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: 'Search by name...',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${filteredCustomers.length} customers',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.mutedText,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -364,61 +363,72 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     child:
                         filteredCustomers.isEmpty
                             ? _buildEmptyState()
-                            : ListView.builder(
-                              itemCount: filteredCustomers.length,
-                              itemBuilder: (context, index) {
-                                final customer = filteredCustomers[index];
-                                return Card(
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  elevation: 5,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(15),
-                                    onTap: () {},
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          _buildCustomerAvatar(customer),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                _buildCustomerName(customer),
-                                                _buildCustomerPhone(customer),
-                                                _buildFeesPaid(customer),
-                                                _buildStartDate(customer),
-                                              ],
-                                            ),
+                            : RefreshIndicator(
+                              onRefresh: fetchCustomers,
+                              child: ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  0,
+                                  20,
+                                  24,
+                                ),
+                                itemCount: filteredCustomers.length,
+                                itemBuilder: (context, index) {
+                                  final customer = filteredCustomers[index];
+                                  return Card(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(16),
+                                      onTap:
+                                          () => _showUpdateCustomerBottomSheet(
+                                            context,
+                                            customer,
                                           ),
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.edit,
-                                              color: Colors.deepPurple,
-                                              size: 28,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _buildCustomerAvatar(customer),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  _buildCustomerName(customer),
+                                                  const SizedBox(height: 8),
+                                                  _buildCustomerPhone(customer),
+                                                  const SizedBox(height: 10),
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: [
+                                                      _buildFeesPaid(customer),
+                                                      _buildStartDate(customer),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                            onPressed: () {
-                                              _showUpdateCustomerBottomSheet(
-                                                context,
-                                                customer,
-                                              );
-                                            },
-                                          ),
-                                        ],
+                                            IconButton.filledTonal(
+                                              tooltip: 'Edit customer',
+                                              icon: const Icon(Icons.edit),
+                                              onPressed:
+                                                  () =>
+                                                      _showUpdateCustomerBottomSheet(
+                                                        context,
+                                                        customer,
+                                                      ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
                   ),
                 ],
@@ -427,18 +437,18 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   }
 
   Widget _buildLoadingState() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          CircularProgressIndicator(color: Colors.deepPurple, strokeWidth: 5),
-          SizedBox(height: 20),
+        children: [
+          CircularProgressIndicator(strokeWidth: 3),
+          SizedBox(height: 18),
           Text(
-            "Loading customers...",
+            'Loading customers...',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.deepPurple,
+              color: AppTheme.primary,
             ),
           ),
         ],
@@ -448,49 +458,45 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
 
   Widget _buildErrorState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            errorMessage?.contains('internet') ?? false
-                ? Icons.signal_wifi_off
-                : Icons.error_outline,
-            size: 80,
-            color: Colors.red,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            errorMessage ?? "An error occurred",
-            style: const TextStyle(fontSize: 18, color: Colors.red),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: fetchCustomers,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              errorMessage?.contains('internet') ?? false
+                  ? Icons.signal_wifi_off
+                  : Icons.error_outline,
+              size: 72,
+              color: Colors.redAccent,
             ),
-            child: const Text(
-              "Try Again",
-              style: TextStyle(color: Colors.white),
+            const SizedBox(height: 16),
+            Text(
+              errorMessage ?? 'An error occurred',
+              style: const TextStyle(fontSize: 15, color: AppTheme.mutedText),
+              textAlign: TextAlign.center,
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: fetchCustomers,
+              child: const Text('Try Again'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.people_outline, size: 80, color: Colors.grey),
-          SizedBox(height: 10),
+        children: [
+          Icon(Icons.people_outline, size: 72, color: AppTheme.mutedText),
+          SizedBox(height: 12),
           Text(
-            "No customers found",
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+            'No customers found',
+            style: TextStyle(fontSize: 16, color: AppTheme.mutedText),
           ),
         ],
       ),
@@ -505,12 +511,12 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
               : null,
       backgroundColor:
           customer['customerImage']?['url'] == null
-              ? Colors.purple[100]
+              ? AppTheme.primary.withOpacity(0.12)
               : Colors.transparent,
       radius: 30,
       child:
           customer['customerImage']?['url'] == null
-              ? const Icon(Icons.person, color: Colors.deepPurple, size: 30)
+              ? const Icon(Icons.person, color: AppTheme.primary, size: 30)
               : null,
     );
   }
@@ -518,50 +524,66 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   Widget _buildCustomerName(dynamic customer) {
     return Text(
       customer['name'] ?? 'Unknown',
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+      maxLines: 2,
       overflow: TextOverflow.ellipsis,
     );
   }
 
   Widget _buildCustomerPhone(dynamic customer) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          const Icon(Icons.phone, size: 16, color: Colors.grey),
-          const SizedBox(width: 8),
-          Text(
+    return Row(
+      children: [
+        const Icon(Icons.phone, size: 16, color: AppTheme.mutedText),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
             customer['mobile'] ?? 'N/A',
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
+            style: const TextStyle(fontSize: 13, color: AppTheme.mutedText),
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildFeesPaid(dynamic customer) {
-    return Row(
-      children: [
-        const Icon(Icons.attach_money, size: 16, color: Colors.green),
-        const SizedBox(width: 8),
-        Text(
-          "Paid: ₹${customer['feesPaid'] ?? 0}",
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
-      ],
+    return _buildInfoChip(
+      Icons.payments_outlined,
+      'Paid: Rs ${customer['feesPaid'] ?? 0}',
+      AppTheme.primary,
     );
   }
 
   Widget _buildStartDate(dynamic customer) {
-    return Row(
-      children: [
-        const Icon(Icons.calendar_today, size: 16, color: Colors.blue),
-        const SizedBox(width: 8),
-        Text(
-          "Date: ${formatStartDate(customer['start_date'])}",
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
-      ],
+    return _buildInfoChip(
+      Icons.calendar_today,
+      formatStartDate(customer['start_date']),
+      const Color(0xFF3461A4),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

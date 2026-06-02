@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'config.dart';
 import 'auth_provider.dart';
+import 'app_theme.dart';
 
 class AddCustomerScreen extends StatefulWidget {
   @override
@@ -53,7 +54,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Colors.green.shade700,
+              primary: AppTheme.primary,
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
@@ -103,7 +104,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Customer added successfully!'),
-              backgroundColor: Colors.green.shade700,
+              backgroundColor: AppTheme.primary,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -145,31 +146,9 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text(
-          "Add New Customer",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.green.shade700,
-        centerTitle: true,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.grey.shade100, Colors.white],
-          ),
-        ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(title: const Text("Add Customer")),
+      body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             child: Container(
@@ -181,9 +160,8 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                    offset: Offset(0, 10),
+                    blurRadius: 18,
+                    offset: Offset(0, 8),
                   ),
                 ],
               ),
@@ -198,35 +176,42 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                         Container(
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade50,
+                            color: AppTheme.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
                             Icons.person_add_rounded,
-                            color: Colors.green.shade700,
+                            color: AppTheme.primary,
                             size: 28,
                           ),
                         ),
                         SizedBox(width: 15),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Customer Details",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green.shade700,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Customer Details",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.text,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            Text(
-                              "Add a new customer to your Home",
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade600,
+                              Text(
+                                "Add a new customer to your mess",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -267,7 +252,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                       Icons.payments_outlined,
                       'Enter amount',
                       keyboardType: TextInputType.number,
-                      prefix: '₹',
+                      prefix: 'Rs ',
                     ),
 
                     SizedBox(height: 30),
@@ -296,7 +281,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.green.shade300, width: 3),
+                border: Border.all(color: AppTheme.primary, width: 3),
                 image:
                     _imageFile != null
                         ? DecorationImage(
@@ -310,7 +295,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                       ? Icon(
                         Icons.add_a_photo,
                         size: 40,
-                        color: Colors.green.shade700,
+                        color: AppTheme.primary,
                       )
                       : null,
             ),
@@ -319,7 +304,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
           Text(
             _imageFile == null ? "Add Photo" : "Change Photo",
             style: TextStyle(
-              color: Colors.green.shade700,
+              color: AppTheme.primary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -429,7 +414,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
           style: TextStyle(fontSize: 16),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, color: Colors.green.shade700),
+            prefixIcon: Icon(icon, color: AppTheme.primary),
             prefixText: prefix,
             prefixStyle: TextStyle(
               color: Colors.black,
@@ -448,7 +433,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.green.shade700, width: 2),
+              borderSide: BorderSide(color: AppTheme.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -492,10 +477,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.calendar_today_rounded,
-                  color: Colors.green.shade700,
-                ),
+                Icon(Icons.calendar_today_rounded, color: AppTheme.primary),
                 SizedBox(width: 16),
                 Text(
                   _selectedDate == null
@@ -525,13 +507,13 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
       child: ElevatedButton(
         onPressed: isLoading ? null : _submitForm,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green.shade700,
+          backgroundColor: AppTheme.primary,
           foregroundColor: Colors.white,
           elevation: 5,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          shadowColor: Colors.green.withOpacity(0.5),
+          shadowColor: AppTheme.primary.withOpacity(0.25),
         ),
         child:
             isLoading

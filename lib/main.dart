@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'auth_provider.dart';
+import 'app_theme.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -38,10 +39,8 @@ class MyApp extends StatelessWidget {
         }
         return MaterialApp(
           title: 'SevaSamruddhi',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-            useMaterial3: true,
-          ),
+          theme: AppTheme.light(),
+          debugShowCheckedModeBanner: false,
           home:
               authProvider.isLoggedIn
                   ? HomeScreen(uid: authProvider.authData!['user']['uid'])

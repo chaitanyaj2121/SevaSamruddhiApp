@@ -1,5 +1,5 @@
 class APIConfig {
-  static const String baseUrl = 'https://charm-measuring-identifier-raised.trycloudflare.com';
+  static const String baseUrl = 'https://backend-smart-serve-app.vercel.app';
   static const String customersUrl = baseUrl + "/customers";
   static const String addCustomerUrl = baseUrl + "/addCustomer";
   static const String loginUrl = baseUrl + "/login";
@@ -13,7 +13,7 @@ class APIConfig {
 // config.dart
 class Config {
   // Your backend server URL
-  static const String apiUrl = 'https://charm-measuring-identifier-raised.trycloudflare.com';
+  static const String apiUrl = 'https://backend-smart-serve-app.vercel.app';
 
   // Your Razorpay key_id (public key)
   static const String razorpayKey = 'rzp_test_yourKeyId';

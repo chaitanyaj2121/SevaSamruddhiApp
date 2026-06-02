@@ -7,6 +7,7 @@ import 'package:setupfirebase/config.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'auth_provider.dart';
 import 'update_profile.dart';
+import 'app_theme.dart';
 
 class BusinessProfileScreen extends StatefulWidget {
   const BusinessProfileScreen({Key? key}) : super(key: key);
@@ -136,10 +137,9 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Business Profile'),
-        backgroundColor: Colors.indigo,
-        elevation: 0,
         actions: [
           if (!_isLoading && _businessData != null)
             IconButton(
@@ -211,7 +211,6 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
             icon: const Icon(Icons.refresh),
             label: const Text('Try Again'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.indigo,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
@@ -238,7 +237,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
-        color: Colors.indigo,
+        color: AppTheme.primaryDark,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
@@ -249,13 +248,13 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundColor: Colors.white,
+            backgroundColor: AppTheme.surface,
             child: Text(
               _businessData?['businessName']?.substring(0, 1) ?? 'B',
               style: const TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
-                color: Colors.indigo,
+                color: AppTheme.primary,
               ),
             ),
           ),
@@ -263,8 +262,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
           Text(
             _businessData?['businessName'] ?? 'Business Name',
             style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
             ),
             textAlign: TextAlign.center,
@@ -272,7 +271,11 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
           const SizedBox(height: 8),
           Text(
             'Established: ${_formatDate(_businessData?['createdAt'])}',
-            style: const TextStyle(fontSize: 16, color: Colors.white70),
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.4,
+              color: Color(0xFFDDEBE7),
+            ),
           ),
         ],
       ),
@@ -282,8 +285,6 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   Widget _buildDetailsCard() {
     return Card(
       margin: const EdgeInsets.all(16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -293,8 +294,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               'Business Details',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.indigo,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primary,
               ),
             ),
             const Divider(height: 24),
@@ -323,8 +324,6 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   Widget _buildAddressCard() {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -334,15 +333,15 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               'Location',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.indigo,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primary,
               ),
             ),
             const Divider(height: 24),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.location_on, color: Colors.indigo),
+                const Icon(Icons.location_on, color: AppTheme.primary),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
@@ -361,8 +360,6 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   Widget _buildFinancialCard() {
     return Card(
       margin: const EdgeInsets.all(16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -372,8 +369,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               'Financial Information',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.indigo,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primary,
               ),
             ),
             const Divider(height: 24),
@@ -398,7 +395,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.indigo),
+          Icon(icon, color: AppTheme.primary),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -406,10 +403,19 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.mutedText,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text(value, style: const TextStyle(fontSize: 16)),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.text,
+                  ),
+                ),
               ],
             ),
           ),
