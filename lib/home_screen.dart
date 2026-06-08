@@ -193,6 +193,20 @@ class _HomeScreenState extends State<HomeScreen> {
             value: _isLoadingStats ? '--' : '$_totalCustomers',
             icon: Icons.people_alt_outlined,
             color: AppTheme.primary,
+            onTap: () {
+              final authProvider = Provider.of<AuthProvider>(
+                context,
+                listen: false,
+              );
+              final messId = authProvider.authData?['user']['uid'];
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CustomerListScreen(messId: messId),
+                ),
+              );
+            },
           ),
         ),
         const SizedBox(width: 12),
@@ -202,6 +216,11 @@ class _HomeScreenState extends State<HomeScreen> {
             value: _isLoadingStats ? '--' : '$_customersWithRemainingFees',
             icon: Icons.receipt_long_outlined,
             color: const Color(0xFF3461A4),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DashboardScreen()),
+                ),
           ),
         ),
         const SizedBox(width: 12),
@@ -214,6 +233,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     : 'Rs ${_totalRemainingFees.toStringAsFixed(0)}',
             icon: Icons.payments_outlined,
             color: const Color(0xFFC46A2B),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DashboardScreen()),
+                ),
           ),
         ),
       ],
@@ -225,44 +249,49 @@ class _HomeScreenState extends State<HomeScreen> {
     required String value,
     required IconData icon,
     required Color color,
+    VoidCallback? onTap,
   }) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 34,
-              width: 34,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 34,
+                width: 34,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 18),
               ),
-              child: Icon(icon, color: color, size: 18),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppTheme.mutedText,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.mutedText,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
