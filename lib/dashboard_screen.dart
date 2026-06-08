@@ -73,12 +73,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   String formatTimestamp(dynamic timestamp) {
-    if (timestamp != null && timestamp['_seconds'] != null) {
+    if (timestamp == null) return 'N/A';
+
+    if (timestamp is String) {
+      final date = DateTime.tryParse(timestamp);
+      if (date != null) {
+        return DateFormat('dd MMM yy').format(date);
+      }
+      return 'N/A';
+    }
+
+    if (timestamp is Map && timestamp['_seconds'] != null) {
       DateTime date = DateTime.fromMillisecondsSinceEpoch(
         timestamp['_seconds'] * 1000,
       );
       return DateFormat('dd MMM yy').format(date);
     }
+
     return 'N/A';
   }
 

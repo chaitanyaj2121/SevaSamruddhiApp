@@ -6,6 +6,7 @@ import 'auth_provider.dart';
 import 'app_theme.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import 'route_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
           title: 'SevaSamruddhi',
           theme: AppTheme.light(),
           debugShowCheckedModeBanner: false,
+          navigatorObservers: [routeObserver],
           home:
               authProvider.isLoggedIn
                   ? HomeScreen(uid: authProvider.authData!['user']['uid'])

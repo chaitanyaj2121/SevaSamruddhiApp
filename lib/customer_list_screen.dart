@@ -305,12 +305,23 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   }
 
   String formatStartDate(dynamic timestamp) {
-    if (timestamp != null && timestamp['_seconds'] != null) {
+    if (timestamp == null) return 'N/A';
+
+    if (timestamp is String) {
+      final date = DateTime.tryParse(timestamp);
+      if (date != null) {
+        return DateFormat('dd MMM yyyy').format(date);
+      }
+      return 'N/A';
+    }
+
+    if (timestamp is Map && timestamp['_seconds'] != null) {
       final date = DateTime.fromMillisecondsSinceEpoch(
         timestamp['_seconds'] * 1000,
       );
       return DateFormat('dd MMM yyyy').format(date);
     }
+
     return 'N/A';
   }
 
